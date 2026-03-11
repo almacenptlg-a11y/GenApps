@@ -156,10 +156,7 @@ function initHub(currentUser) {
                     ${app.info || 'Gestión y control.'}
                 </p>
                 
-                <div class="flex items-center justify-center gap-1 font-bold text-red-600 text-[10px] uppercase tracking-widest mt-auto">
-                    <span>Abrir</span>
-                    <i class="ph ph-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
-                </div>
+                
             </div>
         `;
         cardsContainer.appendChild(card);
