@@ -88,13 +88,16 @@ function initHub(currentUser) {
     const menu = document.getElementById('appMenu');
     const cardsContainer = document.getElementById('cards-container');
     
-    // Recuperar el catálogo dinámico desde el servidor
+    // Recuperar el catálogo
     const APPS_CATALOG = JSON.parse(localStorage.getItem('genAppsCatalog')) || [];
 
     menu.innerHTML = ''; 
     cardsContainer.innerHTML = '';
 
-    // Botón de Inicio fijo en el menú
+    // Renderizar Banner Dinámico de Bienvenida
+    renderWelcomeBanner(currentUser.nombre.split(' ')[0]); // Usamos solo el primer nombre
+
+    // Menú Lateral Fijo
     menu.innerHTML += `
         <button class="w-full flex items-center gap-3 p-3 mb-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-red-600 transition-all group" onclick="showHome()">
             <i class="ph ph-house text-2xl group-hover:scale-110 transition-transform"></i>
@@ -103,9 +106,9 @@ function initHub(currentUser) {
         <div class="border-t border-gray-100 my-2"></div>
     `;
 
-    // Renderizar tarjetas iterando sobre la BD de Apps
+    // Renderizar Tarjetas Avanzadas
     APPS_CATALOG.forEach(app => {
-        // 1. Inyectar en el Menú Lateral
+        // 1. Inyectar Menú Lateral
         const btn = document.createElement('button');
         btn.className = 'w-full flex items-center gap-3 p-3 mb-1 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-red-600 transition-all group menu-btn';
         btn.dataset.id = app.id;
@@ -118,35 +121,83 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-        // 2. Inyectar Tarjeta en el Dashboard (Con imagen real dinámica)
+        // 2. Inyectar Tarjeta Flotante en el Dashboard
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-3 cursor-pointer hover:shadow-xl hover:-translate-y-2 hover:border-red-200 transition-all duration-300 group relative overflow-hidden';
+        // Clases base de la tarjeta: Flexbox, padding superior grande (pt-16) para que la imagen quepa.
+        card.className = 'bg-white rounded-3xl shadow-md hover:shadow-2xl border border-gray-100 p-6 pt-16 flex flex-col items-center gap-2 cursor-pointer transition-all duration-500 hover:-translate-y-4 hover:border-red-200 group relative';
         card.onclick = () => loadApp(app, currentUser);
         
-        // Uso la etiqueta <img> para cargar la URL de la imagen del backend.
-        // OnError: Si el link falla, pone un ícono por defecto automáticamente.
         card.innerHTML = `
-            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-50 to-transparent rounded-bl-full -z-10 transition-transform group-hover:scale-150"></div>
-            
-            <div class="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-600 transition-colors shadow-sm overflow-hidden">
-                <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-cover group-hover:opacity-90" 
-                     onerror="this.outerHTML='<i class=\\'ph ph-squares-four text-3xl text-red-600 group-hover:text-white\\'></i>'">
+            <div class="absolute inset-0 bg-gradient-to-b from-red-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none"></div>
+
+            <div class="absolute -top-12 w-28 h-28 rounded-2xl bg-white shadow-[0_10px_30px_rgb(0,0,0,0.12)] p-2 flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-3 transition-transform duration-500 z-10">
+                <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-contain rounded-xl drop-shadow-sm" 
+                     onerror="this.outerHTML='<i class=\\'ph ph-squares-four text-6xl text-red-600\\'></i>'">
             </div>
             
-            <div class="mt-2">
-                <h3 class="font-bold text-gray-800 text-lg leading-tight mb-1">${app.titulo}</h3>
-                <p class="text-xs text-gray-500 line-clamp-2">${app.info || 'Haz clic para acceder al módulo.'}</p>
+            <div class="mt-2 text-center z-10 relative w-full flex-1 flex flex-col">
+                <h3 class="font-extrabold text-gray-800 text-lg mb-2 group-hover:text-red-700 transition-colors">${app.titulo}</h3>
+                <p class="text-sm text-gray-500 line-clamp-2 px-2">${app.info || 'Gestión y control de este módulo.'}</p>
             </div>
             
-            <div class="mt-auto pt-4 flex items-center justify-between text-xs font-semibold text-gray-400 group-hover:text-red-600 transition-colors">
-                <span>Abrir Módulo</span>
-                <i class="ph ph-arrow-right text-lg"></i>
+            <div class="mt-4 pt-4 border-t border-gray-50 w-full flex items-center justify-center gap-2 text-sm font-bold text-gray-400 group-hover:text-red-600 transition-colors z-10">
+                <span>Ingresar</span>
+                <i class="ph ph-arrow-circle-right text-2xl group-hover:translate-x-2 transition-transform"></i>
             </div>
         `;
         cardsContainer.appendChild(card);
     });
 
     showHome();
+}
+
+// === RENDERIZADOR DEL BANNER DINÁMICO (NUEVO) ===
+function renderWelcomeBanner(nombre) {
+    const horaLocal = new Date().getHours();
+    let saludo, svgIcon, colorCls, bgGlow;
+
+    // Lógica de Mañana (05:00 - 11:59)
+    if (horaLocal >= 5 && horaLocal < 12) {
+        saludo = "Buenos días";
+        colorCls = "text-amber-500";
+        bgGlow = "bg-amber-100";
+        // SVG Sol girando lentamente
+        svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-[spin_12s_linear_infinite] drop-shadow-lg"><path d="M12 4V2M12 22v-2M4 12H2m20 0h-2m-2.05-6.95l1.41-1.41M4.64 19.36l1.41-1.41M19.36 19.36l-1.41-1.41M6.05 6.05L4.64 4.64M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    } 
+    // Lógica de Tarde (12:00 - 18:59)
+    else if (horaLocal >= 12 && horaLocal < 19) {
+        saludo = "Buenas tardes";
+        colorCls = "text-orange-500";
+        bgGlow = "bg-orange-100";
+        // SVG Sol y Nube con animación flotante suave
+        svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-[bounce_3s_infinite] drop-shadow-lg"><path d="M8 17a4 4 0 110-8c0-.44.07-.87.2-1.28A5.5 5.5 0 0113.5 3 5.5 5.5 0 0119 8.5c0 .17 0 .33-.03.5A4 4 0 1116 17H8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    } 
+    // Lógica de Noche (19:00 - 04:59)
+    else {
+        saludo = "Buenas noches";
+        colorCls = "text-indigo-500";
+        bgGlow = "bg-indigo-100";
+        // SVG Luna con animación de pulso estelar
+        svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-pulse drop-shadow-lg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    }
+
+    const container = document.getElementById('welcome-banner');
+    container.innerHTML = `
+        <div class="flex items-center gap-4 sm:gap-8 p-6 sm:p-8 rounded-[2rem] bg-white shadow-sm border border-gray-100 relative overflow-hidden transition-all hover:shadow-md">
+            <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full ${bgGlow} opacity-60 blur-3xl pointer-events-none"></div>
+            
+            <div class="${colorCls} z-10">
+                ${svgIcon}
+            </div>
+            
+            <div class="z-10 flex-1">
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-800 tracking-tight leading-tight">
+                    ${saludo}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">${nombre}</span>
+                </h2>
+                <p class="text-gray-500 mt-2 font-medium text-sm sm:text-lg">¿Qué módulo de La Genovesa vamos a gestionar hoy?</p>
+            </div>
+        </div>
+    `;
 }
 
 // === NAVEGACIÓN ENTRE INICIO Y APPS ===
