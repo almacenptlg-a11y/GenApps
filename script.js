@@ -163,12 +163,41 @@ function showHome() {
 }
 
 function loadApp(app, user) {
-    // Validar que haya un enlace
+    // 1. Validar que haya un enlace
     if (!app.link || app.link.trim() === "") {
         alert("Este módulo aún no tiene un enlace configurado.");
         return;
     }
 
+    // 2. Constructor Seguro de URLs
+    let urlSegura = app.link;
+    try {
+        const urlObj = new URL(app.link);
+        urlObj.searchParams.append('email', user.email);
+        urlObj.searchParams.append('rol', user.rol);
+        urlObj.searchParams.append('t', Date.now());
+        urlSegura = urlObj.toString();
+    } catch (e) {
+        const separador = app.link.includes('?') ? '&' : '?';
+        urlSegura = `${app.link}${separador}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`;
+    }
+
+    // ==========================================
+    // 3. REGLA ARQUITECTÓNICA (NUEVO)
+    // Detección de apps que bloquean Iframes
+    // ==========================================
+    if (urlSegura.includes('appsheet.com')) {
+        // Abrimos AppSheet en una nueva pestaña para evitar el bloqueo X-Frame-Options
+        window.open(urlSegura, '_blank');
+        
+        // Mantener al usuario en la vista del Dashboard (no mostramos iframe vacío)
+        showHome(); 
+        return; 
+    }
+
+    // ==========================================
+    // 4. LÓGICA NORMAL (Para apps internas/Apps Script)
+    // ==========================================
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
     
@@ -183,20 +212,6 @@ function loadApp(app, user) {
         btn.classList.remove('bg-red-50', 'text-red-600', 'shadow-sm', 'border', 'border-red-100');
         if (btn.dataset.id === app.id) btn.classList.add('bg-red-50', 'text-red-600', 'shadow-sm', 'border', 'border-red-100');
     });
-
-    // Constructor Seguro de URLs (Previene errores si el link original ya tiene parámetros '?')
-    let urlSegura = app.link;
-    try {
-        const urlObj = new URL(app.link);
-        urlObj.searchParams.append('email', user.email);
-        urlObj.searchParams.append('rol', user.rol);
-        urlObj.searchParams.append('t', Date.now());
-        urlSegura = urlObj.toString();
-    } catch (e) {
-        // Fallback si la URL no es estándar
-        const separador = app.link.includes('?') ? '&' : '?';
-        urlSegura = `${app.link}${separador}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`;
-    }
 
     iframe.src = urlSegura;
     iframe.onload = () => loader.classList.add('hidden');
