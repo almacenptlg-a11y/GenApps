@@ -134,28 +134,37 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-        // 2. Inyectar Tarjeta Flotante en el Dashboard
+       // 2. Inyectar Tarjeta Dinámica con "State Inversion" (Inversión de Estado)
         const card = document.createElement('div');
-        // Clases base de la tarjeta: Flexbox, padding superior grande (pt-16) para que la imagen quepa.
-        card.className = 'bg-white rounded-3xl shadow-md hover:shadow-2xl border border-gray-100 p-6 pt-16 flex flex-col items-center gap-2 cursor-pointer transition-all duration-500 hover:-translate-y-4 hover:border-red-200 group relative';
+        // El contenedor base: alto fijo (h-80), fondo blanco, esquinas muy redondeadas
+        card.className = 'group relative h-80 bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl cursor-pointer transition-shadow duration-500 border border-gray-100';
         card.onclick = () => loadApp(app, currentUser);
         
         card.innerHTML = `
-            <div class="absolute inset-0 bg-gradient-to-b from-red-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none"></div>
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full group-hover:top-8 group-hover:w-32 group-hover:h-32 group-hover:rounded-full group-hover:shadow-[0_15px_35px_rgba(0,0,0,0.15)] transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 overflow-hidden bg-white">
+                <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                     onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-6xl text-red-600\\'></i></div>'">
+            </div>
 
-            <div class="absolute -top-12 w-28 h-28 rounded-2xl bg-white shadow-[0_10px_30px_rgb(0,0,0,0.12)] p-2 flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-3 transition-transform duration-500 z-10">
-                <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-contain rounded-xl drop-shadow-sm" 
-                     onerror="this.outerHTML='<i class=\\'ph ph-squares-four text-6xl text-red-600\\'></i>'">
-            </div>
-            
-            <div class="mt-2 text-center z-10 relative w-full flex-1 flex flex-col">
-                <h3 class="font-extrabold text-gray-800 text-lg mb-2 group-hover:text-red-700 transition-colors">${app.titulo}</h3>
-                <p class="text-sm text-gray-500 line-clamp-2 px-2">${app.info || 'Gestión y control de este módulo.'}</p>
-            </div>
-            
-            <div class="mt-4 pt-4 border-t border-gray-50 w-full flex items-center justify-center gap-2 text-sm font-bold text-gray-400 group-hover:text-red-600 transition-colors z-10">
-                <span>Ingresar</span>
-                <i class="ph ph-arrow-circle-right text-2xl group-hover:translate-x-2 transition-transform"></i>
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/30 to-transparent transition-opacity duration-700 group-hover:opacity-0 z-10 pointer-events-none"></div>
+
+            <div class="absolute inset-0 p-6 flex flex-col justify-end z-30 pointer-events-none">
+                <div class="transform transition-all duration-700 translate-y-0 group-hover:-translate-y-2 text-left group-hover:text-center w-full">
+                    
+                    <h3 class="font-extrabold text-2xl text-white group-hover:text-gray-800 transition-colors duration-700 mb-2 drop-shadow-md group-hover:drop-shadow-none leading-tight">
+                        ${app.titulo}
+                    </h3>
+                    
+                    <p class="text-sm text-gray-200 group-hover:text-gray-500 line-clamp-2 transition-colors duration-700 drop-shadow-sm group-hover:drop-shadow-none">
+                        ${app.info || 'Haz clic para acceder al módulo y gestionar los registros.'}
+                    </p>
+                    
+                    <div class="mt-5 flex items-center justify-center gap-2 font-bold text-red-600 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-75">
+                        <span class="tracking-wide uppercase text-xs">Abrir Módulo</span>
+                        <i class="ph ph-arrow-circle-right text-xl"></i>
+                    </div>
+
+                </div>
             </div>
         `;
         cardsContainer.appendChild(card);
