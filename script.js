@@ -134,31 +134,31 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-       // 2. Inyectar Tarjeta Compacta con "Minimalismo Revelado"
+       // 2. Inyectar Tarjeta Ultra Compacta (App Launcher Style)
         const card = document.createElement('div');
-        // Tarjeta más pequeña (h-64 = 256px), fondo blanco, flexbox para alinear el texto abajo
-        card.className = 'group relative h-100 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-all duration-500 border border-gray-100 flex flex-col justify-end';
+        // Usamos 'aspect-square' para que sea un cuadrado perfecto.
+        card.className = 'group relative aspect-square bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-all duration-500 border border-gray-100 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
         
         card.innerHTML = `
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:top-8 group-hover:-translate-y-0 w-28 h-28 rounded-full shadow-md group-hover:shadow-lg transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 bg-white border-4 border-white overflow-hidden">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[95%] group-hover:top-5 group-hover:-translate-y-0 group-hover:w-14 group-hover:h-14 rounded-full shadow-none group-hover:shadow-md transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 bg-white flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-white">
                 <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                     onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-4xl text-red-600\\'></i></div>'">
+                     onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-3xl text-red-600\\'></i></div>'">
             </div>
 
-            <div class="p-6 text-center z-10 opacity-0 transform translate-y-8 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-75 ease-[cubic-bezier(0.4,0,0.2,1)] w-full">
+            <div class="p-3 pb-4 text-center z-10 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-75 ease-[cubic-bezier(0.4,0,0.2,1)] w-full h-full flex flex-col justify-end mt-auto">
                 
-                <h3 class="font-extrabold text-lg text-gray-800 leading-tight mb-2 line-clamp-1">
+                <h3 class="font-extrabold text-[13px] text-gray-800 leading-tight mb-1 line-clamp-2">
                     ${app.titulo}
                 </h3>
                 
-                <p class="text-xs text-gray-500 line-clamp-2 mb-4 font-medium">
-                    ${app.info || 'Gestión y control de este módulo.'}
+                <p class="text-[10px] text-gray-500 line-clamp-2 mb-2 font-medium leading-tight hidden sm:block">
+                    ${app.info || 'Gestión y control.'}
                 </p>
                 
-                <div class="flex items-center justify-center gap-2 font-bold text-red-600 text-xs uppercase tracking-widest">
-                    <span>Ingresar</span>
-                    <i class="ph ph-arrow-right text-base transition-transform group-hover:translate-x-1"></i>
+                <div class="flex items-center justify-center gap-1 font-bold text-red-600 text-[10px] uppercase tracking-widest mt-auto">
+                    <span>Abrir</span>
+                    <i class="ph ph-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
                 </div>
             </div>
         `;
