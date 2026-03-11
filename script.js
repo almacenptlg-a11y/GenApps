@@ -134,36 +134,31 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-       // 2. Inyectar Tarjeta Dinámica con "State Inversion" (Inversión de Estado)
+       // 2. Inyectar Tarjeta Compacta con "Minimalismo Revelado"
         const card = document.createElement('div');
-        // El contenedor base: alto fijo (h-80), fondo blanco, esquinas muy redondeadas
-        card.className = 'group relative h-80 bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl cursor-pointer transition-shadow duration-500 border border-gray-100';
+        // Tarjeta más pequeña (h-64 = 256px), fondo blanco, flexbox para alinear el texto abajo
+        card.className = 'group relative h-64 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-all duration-500 border border-gray-100 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
         
         card.innerHTML = `
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full group-hover:top-8 group-hover:w-32 group-hover:h-32 group-hover:rounded-full group-hover:shadow-[0_15px_35px_rgba(0,0,0,0.15)] transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 overflow-hidden bg-white">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:top-8 group-hover:-translate-y-0 w-28 h-28 rounded-full shadow-md group-hover:shadow-lg transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 bg-white border-4 border-white overflow-hidden">
                 <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                     onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-6xl text-red-600\\'></i></div>'">
+                     onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-4xl text-red-600\\'></i></div>'">
             </div>
 
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/30 to-transparent transition-opacity duration-700 group-hover:opacity-0 z-10 pointer-events-none"></div>
-
-            <div class="absolute inset-0 p-6 flex flex-col justify-end z-30 pointer-events-none">
-                <div class="transform transition-all duration-700 translate-y-0 group-hover:-translate-y-2 text-left group-hover:text-center w-full">
-                    
-                    <h3 class="font-extrabold text-2xl text-white group-hover:text-gray-800 transition-colors duration-700 mb-2 drop-shadow-md group-hover:drop-shadow-none leading-tight">
-                        ${app.titulo}
-                    </h3>
-                    
-                    <p class="text-sm text-gray-200 group-hover:text-gray-500 line-clamp-2 transition-colors duration-700 drop-shadow-sm group-hover:drop-shadow-none">
-                        ${app.info || 'Haz clic para acceder al módulo y gestionar los registros.'}
-                    </p>
-                    
-                    <div class="mt-5 flex items-center justify-center gap-2 font-bold text-red-600 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-75">
-                        <span class="tracking-wide uppercase text-xs">Abrir Módulo</span>
-                        <i class="ph ph-arrow-circle-right text-xl"></i>
-                    </div>
-
+            <div class="p-6 text-center z-10 opacity-0 transform translate-y-8 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-75 ease-[cubic-bezier(0.4,0,0.2,1)] w-full">
+                
+                <h3 class="font-extrabold text-lg text-gray-800 leading-tight mb-2 line-clamp-1">
+                    ${app.titulo}
+                </h3>
+                
+                <p class="text-xs text-gray-500 line-clamp-2 mb-4 font-medium">
+                    ${app.info || 'Gestión y control de este módulo.'}
+                </p>
+                
+                <div class="flex items-center justify-center gap-2 font-bold text-red-600 text-xs uppercase tracking-widest">
+                    <span>Ingresar</span>
+                    <i class="ph ph-arrow-right text-base transition-transform group-hover:translate-x-1"></i>
                 </div>
             </div>
         `;
