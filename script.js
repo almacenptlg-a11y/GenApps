@@ -5,6 +5,19 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxLJYQe6QZCiDARD1I5ngkq
 document.addEventListener('DOMContentLoaded', () => {
     checkAuthState();
     bindLoginEvents();
+    
+    // NUEVO: Registrar el Service Worker para hacer la App instalable
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker registrado con éxito con el scope: ', registration.scope);
+                })
+                .catch(err => {
+                    console.error('Fallo al registrar el ServiceWorker: ', err);
+                });
+        });
+    }
 });
 
 // === MÁQUINA DE ESTADOS (VISTAS) ===
