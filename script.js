@@ -137,7 +137,7 @@ function initHub(currentUser) {
        // 2. Inyectar Tarjeta Compacta con "Minimalismo Revelado"
         const card = document.createElement('div');
         // Tarjeta más pequeña (h-64 = 256px), fondo blanco, flexbox para alinear el texto abajo
-        card.className = 'group relative h-64 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-all duration-500 border border-gray-100 flex flex-col justify-end';
+        card.className = 'group relative h-40 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-all duration-500 border border-gray-100 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
         
         card.innerHTML = `
