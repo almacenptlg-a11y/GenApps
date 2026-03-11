@@ -141,7 +141,7 @@ function initHub(currentUser) {
         card.onclick = () => loadApp(app, currentUser);
         
         card.innerHTML = `
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[95%] group-hover:top-5 group-hover:-translate-y-0 group-hover:w-14 group-hover:h-14 rounded-full shadow-none group-hover:shadow-md transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 bg-white flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-white">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[95%] group-hover:top-5 group-hover:-translate-y-0 group-hover:w-28 group-hover:h-28 rounded-full shadow-none group-hover:shadow-md transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 bg-white flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-white">
                 <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                      onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-3xl text-red-600\\'></i></div>'">
             </div>
