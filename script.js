@@ -114,7 +114,7 @@ function initHub(currentUser) {
     menu.innerHTML += `
         <button class="w-full flex items-center gap-3 p-3 mb-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-red-600 transition-all group" onclick="showHome()">
             <i class="ph ph-house text-2xl group-hover:scale-110 transition-transform"></i>
-            <span class="text-sm font-semibold">Inicio (Dashboard)</span>
+            <span class="text-sm font-semibold">Inicio</span>
         </button>
         <div class="border-t border-gray-100 my-2"></div>
     `;
