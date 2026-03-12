@@ -134,7 +134,13 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-       // 2. Inyectar Tarjeta Ultra Compacta (Adaptación 240px)
+      // Renderizar tarjetas iterando sobre la BD de Apps
+    APPS_CATALOG.forEach(app => {
+        
+        // ¡NUEVO!: Procesar el link de la imagen antes de usarlo
+        const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
+
+        // 2. Inyectar Tarjeta Ultra Compacta (Adaptación 240px)
         const card = document.createElement('div');
         card.className = 'group relative aspect-square bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
@@ -142,7 +148,7 @@ function initHub(currentUser) {
         card.innerHTML = `
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] group-hover:top-6 group-hover:-translate-y-0 group-hover:w-[55%] group-hover:h-[55%] rounded-full shadow-none group-hover:shadow-lg transition-all duration-500 ease-out z-20 bg-white flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-gray-50">
                 
-                <img src="${app.imagen}" alt="${app.titulo}" 
+                <img src="${urlImagenOptimizada}" alt="${app.titulo}" 
                      class="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-110" 
                      style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
                      onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-4xl text-red-600\\'></i></div>'">
@@ -320,4 +326,27 @@ function logout() {
         document.getElementById('appViewer').src = "about:blank";
         checkAuthState();
     }
+}
+
+// === UTILIDADES ARQUITECTÓNICAS ===
+/**
+ * Convierte un link del visor de Google Drive a un link de imagen directa.
+ * Si el link no es de Drive, lo devuelve intacto.
+ */
+function optimizarLinkImagen(url) {
+    if (!url) return "";
+    
+    // Detectamos si es un enlace de Google Drive
+    if (url.includes("drive.google.com")) {
+        // Expresión Regular para extraer el ID del archivo
+        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+        
+        if (match && match[1]) {
+            const fileId = match[1];
+            // Construimos el link directo nativo de Google
+            return `https://drive.google.com/uc?export=view&id=${fileId}`;
+        }
+    }
+    
+    return url; // Si es de AppSheet u otra fuente, pasa directo
 }
