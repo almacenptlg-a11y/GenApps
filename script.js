@@ -257,15 +257,26 @@ function loadApp(app, user) {
         urlSegura = `${app.link}${separador}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`;
     }
 
+   // ==========================================
+    // 3. REGLA ARQUITECTÓNICA (MODO VENTANA EMERGENTE)
     // ==========================================
-    // 3. REGLA ARQUITECTÓNICA (NUEVO)
-    // Detección de apps que bloquean Iframes
-    // ==========================================
-    if (urlSegura.includes('appsheet.com')) {
-        // Abrimos AppSheet en una nueva pestaña para evitar el bloqueo X-Frame-Options
-        window.open(urlSegura, '_blank');
+    const dominiosBloqueados = ['appsheet.com', 'plesk.page', 'galaxycont.com'];
+    const necesitaNuevaPestaña = dominiosBloqueados.some(dominio => urlSegura.includes(dominio));
+
+    if (necesitaNuevaPestaña) {
+        // Configuramos el tamaño de la ventana (Ej: 80% de la pantalla)
+        const ancho = window.innerWidth * 0.8;
+        const alto = window.innerHeight * 0.8;
+        const left = (window.innerWidth - ancho) / 2;
+        const top = (window.innerHeight - alto) / 2;
+
+        // Abrimos como una ventana tipo aplicación de escritorio
+        window.open(
+            urlSegura, 
+            app.titulo, // Nombre de la ventana
+            `width=${ancho},height=${alto},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,status=no`
+        );
         
-        // Mantener al usuario en la vista del Dashboard (no mostramos iframe vacío)
         showHome(); 
         return; 
     }
