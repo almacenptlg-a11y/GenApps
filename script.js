@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme(); // Cargar Modo Nocturno
     checkAuthState();
     bindLoginEvents();
+    bindCredentialsEvents();
     
     // Registrar el Service Worker para PWA
     if ('serviceWorker' in navigator) {
@@ -285,6 +286,15 @@ function toggleMenu() {
 
 function openCredentialsModal() {
     const modal = document.getElementById('credentialsModal');
+
+    // Autocompletar el usuario actual en el input
+    const userStr = localStorage.getItem('genUser');
+    if (userStr) {
+        const currentUser = JSON.parse(userStr);
+        document.getElementById('newUsername').value = currentUser.usuario;
+        document.getElementById('newPassword').value = ''; // Dejar contraseña limpia
+    }
+    
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     toggleMenu(); 
@@ -315,4 +325,62 @@ function optimizarLinkImagen(url) {
         }
     }
     return url;
+}
+
+// === LÓGICA DE ACTUALIZAR CREDENCIALES ===
+function bindCredentialsEvents() {
+    const form = document.getElementById('formCredenciales');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = form.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML; // Guardar "Guardar Cambios"
+        
+        // Obtener usuario actual desde la sesión
+        const userStr = localStorage.getItem('genUser');
+        if (!userStr) return;
+        const currentUser = JSON.parse(userStr);
+
+        const newUser = document.getElementById('newUsername').value;
+        const newPass = document.getElementById('newPassword').value;
+
+        // Efecto de carga
+        btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Guardando...';
+        btn.disabled = true;
+
+        const payload = {
+            action: 'updateCredentials',
+            currentUser: currentUser.usuario,
+            newUser: newUser,
+            newPass: newPass
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Error al conectar con los servidores de La Genovesa.");
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                alert("¡Éxito! Tus credenciales se actualizaron correctamente.\nPor seguridad, tu sesión se cerrará ahora.");
+                closeCredentialsModal();
+                logout(); // Forzamos cerrar sesión para que use sus nuevos datos
+            } else {
+                throw new Error(data.message); // El mensaje que mandamos desde el backend
+            }
+        } catch (error) {
+            console.error("Detalle del error:", error);
+            alert("Error: " + (error.message || "Ocurrió un problema inesperado."));
+        } finally {
+            // Restaurar el botón
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
 }
