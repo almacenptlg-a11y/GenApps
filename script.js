@@ -108,43 +108,56 @@ function initHub(currentUser) {
     cardsContainer.innerHTML = '';
 
     // Renderizar Banner Dinámico de Bienvenida
-    renderWelcomeBanner(currentUser.nombre.split(' ')[0]); // Usamos solo el primer nombre
+    renderWelcomeBanner(currentUser.nombre.split(' ')[0]);
 
-    // Menú Lateral Fijo
+    // Menú Lateral Fijo: Botón INICIO rediseñado para alinear perfectamente con el nuevo estilo
     menu.innerHTML += `
-        <button class="w-full flex items-center gap-3 p-3 mb-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-red-600 transition-all group" onclick="showHome()">
-            <i class="ph ph-house text-2xl group-hover:scale-110 transition-transform"></i>
-            <span class="text-sm font-semibold">Inicio</span>
+        <button class="w-full flex items-center gap-3 p-2 mb-2 rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all group" onclick="showHome()">
+            <div class="w-9 h-9 rounded-full bg-gray-100 text-gray-500 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center transition-colors shadow-sm flex-shrink-0">
+                <i class="ph ph-house text-xl"></i>
+            </div>
+            <span class="text-sm font-bold tracking-wide">Inicio Dashboard</span>
         </button>
-        <div class="border-t border-gray-100 my-2"></div>
+        <div class="border-t border-gray-100 my-3 mx-2"></div>
+        <p class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Módulos Activos</p>
     `;
 
-    // UN SOLO BUCLE PARA ITERAR EL CATÁLOGO
     APPS_CATALOG.forEach(app => {
-        // 1. Inyectar Menú Lateral
+        // 1. Procesar el link de la imagen antes de usarlo (Aplica para Sidebar y Tarjeta)
+        const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
+
+        // ========================================================
+        // 2. NUEVO DISEÑO: INYECTAR MENÚ LATERAL
+        // ========================================================
         const btn = document.createElement('button');
-        btn.className = 'w-full flex items-center gap-3 p-3 mb-1 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-red-600 transition-all group menu-btn';
+        // Clases ajustadas para un hover más suave (fondo rojo muy claro y borde)
+        btn.className = 'w-full flex items-center gap-3 p-2 mb-1 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-700 transition-all group menu-btn border border-transparent hover:border-red-100';
         btn.dataset.id = app.id;
+        
         btn.innerHTML = `
-            <i class="ph ph-app-window text-2xl group-hover:scale-110 transition-transform"></i>
-            <div class="flex flex-col items-start text-left overflow-hidden">
-                <span class="text-sm font-semibold truncate w-full">${app.titulo}</span>
+            <div class="w-9 h-9 rounded-full bg-white shadow-sm border border-gray-200 flex-shrink-0 overflow-hidden flex items-center justify-center group-hover:border-red-300 group-hover:shadow transition-all">
+                <img src="${urlImagenOptimizada}" alt="${app.titulo}" 
+                     class="w-full h-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-110" 
+                     style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
+                     onerror="this.outerHTML='<i class=\\'ph ph-app-window text-lg text-gray-400 group-hover:text-red-500\\'></i>'">
+            </div>
+            
+            <div class="flex flex-col items-start text-left overflow-hidden flex-1">
+                <span class="text-sm font-semibold truncate w-full transition-transform duration-300 group-hover:translate-x-1">${app.titulo}</span>
             </div>
         `;
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-        // 2. Procesar el link de la imagen antes de usarlo (Google Drive Fix)
-        const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
-
-        // 3. Inyectar Tarjeta Ultra Compacta (Adaptación 240px)
+        // ========================================================
+        // 3. INYECTAR TARJETA ULTRA COMPACTA (Se mantiene igual)
+        // ========================================================
         const card = document.createElement('div');
         card.className = 'group relative aspect-square bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
         
         card.innerHTML = `
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] group-hover:top-6 group-hover:-translate-y-0 group-hover:w-[55%] group-hover:h-[55%] rounded-full shadow-none group-hover:shadow-lg transition-all duration-500 ease-out z-20 bg-white flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-gray-50">
-                
                 <img src="${urlImagenOptimizada}" alt="${app.titulo}" 
                      class="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-110" 
                      style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
@@ -152,14 +165,8 @@ function initHub(currentUser) {
             </div>
 
             <div class="p-4 text-center z-10 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75 ease-out w-full h-full flex flex-col justify-end mt-auto">
-                
-                <h3 class="font-extrabold text-[15px] text-gray-800 leading-tight mb-1 line-clamp-2">
-                    ${app.titulo}
-                </h3>
-                
-                <p class="text-[11px] text-gray-500 line-clamp-2 mb-2 font-medium leading-tight hidden sm:block">
-                    ${app.info || 'Gestión y control de este módulo.'}
-                </p>
+                <h3 class="font-extrabold text-[15px] text-gray-800 leading-tight mb-1 line-clamp-2">${app.titulo}</h3>
+                <p class="text-[11px] text-gray-500 line-clamp-2 mb-2 font-medium leading-tight hidden sm:block">${app.info || 'Gestión y control de este módulo.'}</p>
             </div>
         `;
         cardsContainer.appendChild(card);
