@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuthState();
     bindLoginEvents();
     bindCredentialsEvents();
+    bindOnboardingEvents();
     
     // Registrar el Service Worker para PWA
     if ('serviceWorker' in navigator) {
@@ -91,18 +92,25 @@ function bindLoginEvents() {
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) throw new Error("Error al conectar con los servidores.");
+            if (!response.ok) throw new Error("Error de red al conectar.");
             const data = await response.json();
 
+            // CASO A: LOGIN NORMAL (Todo perfecto)
             if (data.status === 'success') {
                 localStorage.setItem('genUser', JSON.stringify(data.user));
                 localStorage.setItem('genAppsCatalog', JSON.stringify(data.apps));
                 checkAuthState();
-            } else {
+            } 
+            // CASO B: ONBOARDING FORZOSO (Faltan datos)
+            else if (data.status === 'require_profile') {
+                abrirModalOnboarding(data.tempUser);
+            } 
+            // CASO C: ERRORES
+            else {
                 throw new Error(data.message);
             }
         } catch (error) {
-            err.textContent = error.message || "Ocurrió un error inesperado al conectar.";
+            err.textContent = error.message || "Error inesperado al conectar.";
             err.classList.remove('hidden');
         } finally {
             btn.innerHTML = 'Ingresar';
@@ -379,6 +387,63 @@ function bindCredentialsEvents() {
             alert("Error: " + (error.message || "Ocurrió un problema inesperado."));
         } finally {
             // Restaurar el botón
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+}
+
+// === LÓGICA DE ONBOARDING FORZOSO ===
+function abrirModalOnboarding(usuarioTemporal) {
+    const modal = document.getElementById('onboardingModal');
+    document.getElementById('onboardUserTemp').value = usuarioTemporal; // Guardamos el usuario oculto
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function bindOnboardingEvents() {
+    const form = document.getElementById('formOnboarding');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('btnOnboardSubmit');
+        const originalText = btn.innerHTML;
+        
+        const payload = {
+            action: 'completeProfile',
+            user: document.getElementById('onboardUserTemp').value,
+            nombre: document.getElementById('onboardNombre').value,
+            correo: document.getElementById('onboardCorreo').value
+        };
+
+        btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Guardando...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Error de servidor.");
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                alert("¡Perfil completado con éxito! Por favor, vuelve a ingresar tu contraseña para entrar al sistema.");
+                // Ocultamos el modal de onboarding
+                document.getElementById('onboardingModal').classList.add('hidden');
+                document.getElementById('onboardingModal').classList.remove('flex');
+                // Limpiamos la contraseña del login para forzar re-autenticación
+                document.getElementById('password').value = '';
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            alert("Error: " + (error.message || "Ocurrió un problema inesperado."));
+        } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
