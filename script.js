@@ -297,7 +297,7 @@ function loadApp(app, user) {
 
     if (['appsheet.com', 'plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
         const w = window.innerWidth * 0.8, h = window.innerHeight * 0.8;
-        window.open(urlSegura, app.titulo, `width=${w},height=${h},top=${(window.innerHeight - h)/2},left=${(window.innerWidth - w)/2},toolbar=no`);
+        window.open(urlSegura, '_blank');
         return showHome(); 
     }
 
