@@ -228,10 +228,20 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
+        // APLICANDO DISEÑO MOBILE-FIRST EN LAS TARJETAS
         const card = document.createElement('div');
-        card.className = 'group relative aspect-square bg-white dark:bg-gray-800 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 dark:border-gray-700 flex flex-col justify-end';
+        card.className = 'group relative aspect-square bg-white dark:bg-gray-800 rounded-3xl sm:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 dark:border-gray-700 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
-        card.innerHTML = `<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] group-hover:top-6 group-hover:-translate-y-0 group-hover:w-[55%] group-hover:h-[55%] rounded-full shadow-none group-hover:shadow-lg transition-all duration-500 ease-out z-20 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-gray-50 dark:group-hover:border-gray-700"><img src="${urlImagenOptimizada}" class="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-110" style="image-rendering: crisp-edges;" onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50 dark:bg-gray-700\\'><i class=\\'ph ph-app-window text-4xl text-red-600 dark:text-red-400\\'></i></div>'"></div><div class="p-4 text-center z-10 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75 ease-out w-full h-full flex flex-col justify-end mt-auto"><h3 class="font-extrabold text-[15px] text-gray-800 dark:text-white leading-tight mb-1 line-clamp-2">${app.titulo}</h3><p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 mb-2 font-medium leading-tight hidden sm:block">${app.info || 'Gestión y control de este módulo.'}</p></div>`;
+        card.innerHTML = `
+            <div class="absolute left-1/2 -translate-x-1/2 top-4 w-[55%] h-[55%] sm:top-1/2 sm:-translate-y-1/2 sm:w-[90%] sm:h-[90%] sm:group-hover:top-6 sm:group-hover:-translate-y-0 sm:group-hover:w-[55%] sm:group-hover:h-[55%] rounded-full shadow-sm sm:shadow-none sm:group-hover:shadow-lg transition-all duration-500 ease-out z-20 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-600 sm:border-2 sm:border-transparent sm:group-hover:border-gray-50 sm:dark:group-hover:border-gray-700">
+                <img src="${urlImagenOptimizada}" alt="${app.titulo}" class="w-full h-full object-contain p-2 sm:p-3 transition-transform duration-500 sm:group-hover:scale-110" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50 dark:bg-gray-700\\'><i class=\\'ph ph-app-window text-3xl sm:text-4xl text-red-600 dark:text-red-400\\'></i></div>'">
+            </div>
+            
+            <div class="p-3 sm:p-4 text-center z-10 opacity-100 translate-y-0 sm:opacity-0 sm:translate-y-4 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-500 delay-75 ease-out w-full h-full flex flex-col justify-end mt-auto">
+                <h3 class="font-extrabold text-[12px] sm:text-[15px] text-gray-800 dark:text-white leading-tight mb-0.5 sm:mb-1 line-clamp-2">${app.titulo}</h3>
+                <p class="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 sm:line-clamp-2 mb-1 sm:mb-2 font-medium leading-tight">${app.info || 'Gestión y control de este módulo.'}</p>
+            </div>
+        `;
         cardsContainer.appendChild(card);
     });
 
@@ -241,11 +251,31 @@ function initHub(currentUser) {
 function renderWelcomeBanner(nombre) {
     const horaLocal = new Date().getHours();
     let saludo, svgIcon, colorCls, bgGlow;
-    if (horaLocal >= 5 && horaLocal < 12) { saludo = "Buenos días"; colorCls = "text-amber-500"; bgGlow = "bg-amber-100 dark:bg-amber-900/30"; svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-[spin_12s_linear_infinite] drop-shadow-lg"><path d="M12 4V2M12 22v-2M4 12H2m20 0h-2m-2.05-6.95l1.41-1.41M4.64 19.36l1.41-1.41M19.36 19.36l-1.41-1.41M6.05 6.05L4.64 4.64M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
-    else if (horaLocal >= 12 && horaLocal < 19) { saludo = "Buenas tardes"; colorCls = "text-orange-500"; bgGlow = "bg-orange-100 dark:bg-orange-900/30"; svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-[bounce_3s_infinite] drop-shadow-lg"><path d="M8 17a4 4 0 110-8c0-.44.07-.87.2-1.28A5.5 5.5 0 0113.5 3 5.5 5.5 0 0119 8.5c0 .17 0 .33-.03.5A4 4 0 1116 17H8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
-    else { saludo = "Buenas noches"; colorCls = "text-indigo-500 dark:text-indigo-400"; bgGlow = "bg-indigo-100 dark:bg-indigo-900/30"; svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-pulse drop-shadow-lg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+    
+    if (horaLocal >= 5 && horaLocal < 12) { 
+        saludo = "Buenos días"; colorCls = "text-amber-500"; bgGlow = "bg-amber-100 dark:bg-amber-900/30"; 
+        svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-[spin_12s_linear_infinite] drop-shadow-lg"><path d="M12 4V2M12 22v-2M4 12H2m20 0h-2m-2.05-6.95l1.41-1.41M4.64 19.36l1.41-1.41M19.36 19.36l-1.41-1.41M6.05 6.05L4.64 4.64M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; 
+    } else if (horaLocal >= 12 && horaLocal < 19) { 
+        saludo = "Buenas tardes"; colorCls = "text-orange-500"; bgGlow = "bg-orange-100 dark:bg-orange-900/30"; 
+        svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-[bounce_3s_infinite] drop-shadow-lg"><path d="M8 17a4 4 0 110-8c0-.44.07-.87.2-1.28A5.5 5.5 0 0113.5 3 5.5 5.5 0 0119 8.5c0 .17 0 .33-.03.5A4 4 0 1116 17H8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; 
+    } else { 
+        saludo = "Buenas noches"; colorCls = "text-indigo-500 dark:text-indigo-400"; bgGlow = "bg-indigo-100 dark:bg-indigo-900/30"; 
+        svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-pulse drop-shadow-lg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; 
+    }
 
-    document.getElementById('welcome-banner').innerHTML = `<div class="flex items-center gap-4 sm:gap-8 p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-all hover:shadow-md"><div class="absolute -right-10 -top-10 w-48 h-48 rounded-full ${bgGlow} opacity-60 blur-3xl pointer-events-none"></div><div class="${colorCls} z-10">${svgIcon}</div><div class="z-10 flex-1"><h2 class="text-2xl sm:text-4xl font-extrabold text-gray-800 dark:text-white tracking-tight leading-tight">${saludo}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">${nombre}</span></h2><p class="text-gray-500 dark:text-gray-400 mt-2 font-medium text-sm sm:text-lg">¿Qué módulo vamos a gestionar hoy?</p></div></div>`;
+    // APLICANDO DISEÑO MOBILE-FIRST EN EL BANNER (Padding reducido en sm)
+    document.getElementById('welcome-banner').innerHTML = `
+        <div class="flex items-center gap-3 sm:gap-8 p-5 sm:p-8 rounded-[2rem] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-all hover:shadow-md">
+            <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full ${bgGlow} opacity-60 blur-3xl pointer-events-none"></div>
+            <div class="${colorCls} z-10">${svgIcon}</div>
+            <div class="z-10 flex-1">
+                <h2 class="text-xl sm:text-4xl font-extrabold text-gray-800 dark:text-white tracking-tight leading-tight">
+                    ${saludo}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">${nombre}</span>
+                </h2>
+                <p class="text-gray-500 dark:text-gray-400 mt-1 sm:mt-2 font-medium text-xs sm:text-lg">¿Qué módulo vamos a gestionar hoy?</p>
+            </div>
+        </div>
+    `;
 }
 
 function showHome() {
