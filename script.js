@@ -119,7 +119,7 @@ function initHub(currentUser) {
         <div class="border-t border-gray-100 my-2"></div>
     `;
 
-    // Renderizar Tarjetas Avanzadas
+    // UN SOLO BUCLE PARA ITERAR EL CATÁLOGO
     APPS_CATALOG.forEach(app => {
         // 1. Inyectar Menú Lateral
         const btn = document.createElement('button');
@@ -134,13 +134,10 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-      // Renderizar tarjetas iterando sobre la BD de Apps
-    APPS_CATALOG.forEach(app => {
-        
-        // ¡NUEVO!: Procesar el link de la imagen antes de usarlo
+        // 2. Procesar el link de la imagen antes de usarlo (Google Drive Fix)
         const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
 
-        // 2. Inyectar Tarjeta Ultra Compacta (Adaptación 240px)
+        // 3. Inyectar Tarjeta Ultra Compacta (Adaptación 240px)
         const card = document.createElement('div');
         card.className = 'group relative aspect-square bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
