@@ -328,7 +328,7 @@ function logout() {
 // === UTILIDADES ARQUITECTÓNICAS ===
 /**
  * Convierte un link del visor de Google Drive a un link de imagen directa.
- * Si el link no es de Drive, lo devuelve intacto.
+ * Utiliza el endpoint de 'thumbnail' para evitar bloqueos de seguridad de Google.
  */
 function optimizarLinkImagen(url) {
     if (!url) return "";
@@ -340,10 +340,10 @@ function optimizarLinkImagen(url) {
         
         if (match && match[1]) {
             const fileId = match[1];
-            // Construimos el link directo nativo de Google
-            return `https://drive.google.com/uc?export=view&id=${fileId}`;
+            // TRUCO DE ARQUITECTO: Usar el endpoint de thumbnail con ancho 800px (w800)
+            return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
         }
     }
     
-    return url; // Si es de AppSheet u otra fuente, pasa directo
+    return url; // Si es otra fuente, pasa directo
 }
