@@ -134,29 +134,29 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-       // 2. Inyectar Tarjeta Ultra Compacta (App Launcher Style)
+       // 2. Inyectar Tarjeta Ultra Compacta (Adaptación 240px)
         const card = document.createElement('div');
-        // Usamos 'aspect-square' para que sea un cuadrado perfecto.
-        card.className = 'group relative aspect-square bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-all duration-500 border border-gray-100 flex flex-col justify-end';
+        card.className = 'group relative aspect-square bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
         
         card.innerHTML = `
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] h-[95%] group-hover:top-5 group-hover:-translate-y-0 group-hover:w-[60%] group-hover:h-[60%] rounded-full shadow-none group-hover:shadow-md transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-20 bg-white flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-white">
-                <img src="${app.imagen}" alt="${app.titulo}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-60" 
-                     onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-3xl text-red-600\\'></i></div>'">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] group-hover:top-6 group-hover:-translate-y-0 group-hover:w-[55%] group-hover:h-[55%] rounded-full shadow-none group-hover:shadow-lg transition-all duration-500 ease-out z-20 bg-white flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-gray-50">
+                
+                <img src="${app.imagen}" alt="${app.titulo}" 
+                     class="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-110" 
+                     style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
+                     onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><i class=\\'ph ph-app-window text-4xl text-red-600\\'></i></div>'">
             </div>
 
-            <div class="p-3 pb-4 text-center z-10 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 delay-75 ease-[cubic-bezier(0.4,0,0.2,1)] w-full h-full flex flex-col justify-end mt-auto">
+            <div class="p-4 text-center z-10 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75 ease-out w-full h-full flex flex-col justify-end mt-auto">
                 
-                <h3 class="font-extrabold text-[13px] text-gray-800 leading-tight mb-1 line-clamp-2">
+                <h3 class="font-extrabold text-[15px] text-gray-800 leading-tight mb-1 line-clamp-2">
                     ${app.titulo}
                 </h3>
                 
-                <p class="text-[10px] text-gray-500 line-clamp-2 mb-2 font-medium leading-tight hidden sm:block">
-                    ${app.info || 'Gestión y control.'}
+                <p class="text-[11px] text-gray-500 line-clamp-2 mb-2 font-medium leading-tight hidden sm:block">
+                    ${app.info || 'Gestión y control de este módulo.'}
                 </p>
-                
-                
             </div>
         `;
         cardsContainer.appendChild(card);
