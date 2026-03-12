@@ -178,6 +178,35 @@
         </div>
     </div>
 
+<div id="onboardingModal" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center backdrop-blur-md transition-opacity" aria-modal="true" role="dialog">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md p-8 transform scale-95 transition-transform border border-gray-100 dark:border-gray-700">
+            
+            <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="ph ph-user-focus text-3xl"></i>
+            </div>
+            
+            <h3 class="text-2xl font-black text-center text-gray-800 dark:text-white mb-2">Completa tu Perfil</h3>
+            <p class="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">Por políticas de seguridad, necesitamos tu Nombre y Correo Institucional antes de darte acceso al sistema.</p>
+            
+            <form id="formOnboarding" class="space-y-5">
+                <input type="hidden" id="onboardUserTemp">
+                
+                <div>
+                    <label for="onboardNombre" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Nombre Completo</label>
+                    <input type="text" id="onboardNombre" placeholder="Ej: Juan Pérez" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 dark:text-white rounded-xl focus:ring-2 focus:ring-red-600 focus:outline-none transition-all" required>
+                </div>
+                <div>
+                    <label for="onboardCorreo" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico</label>
+                    <input type="email" id="onboardCorreo" placeholder="tu.correo@empresa.com" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 dark:text-white rounded-xl focus:ring-2 focus:ring-red-600 focus:outline-none transition-all" required>
+                </div>
+                
+                <button type="submit" id="btnOnboardSubmit" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 shadow-lg hover:shadow-red-600/30 transition-all flex items-center justify-center gap-2 mt-4">
+                    Guardar y Continuar <i class="ph ph-arrow-right font-bold"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
