@@ -11,12 +11,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon.svg">
-
-    <script src="https://cdn.tailwindcss.com"></script>
+   
+   <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-50 flex h-screen overflow-hidden font-sans">
+<body class="bg-gray-50 dark:bg-gray-900 flex h-screen overflow-hidden font-sans transition-colors duration-300">
 
     <main id="login-view" class="w-full h-full flex items-center justify-center absolute inset-0 bg-gray-50 z-50 hidden transition-opacity duration-300">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center border border-gray-100">
@@ -67,7 +72,7 @@
 
     <div id="hub-view" class="w-full h-full flex flex-col hidden relative">
         
-        <header class="h-16 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between px-4 sm:px-6 z-30">
+        <header class="h-16 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between px-4 sm:px-6 z-30 dark:bg-gray-800 dark:border-gray-700">
             <div class="flex items-center gap-4">
                 <button onclick="toggleMenu()" class="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Abrir menú lateral">
                     <i class="ph ph-list text-2xl"></i>
@@ -96,12 +101,12 @@
                         </g>
                     </svg>
                 </button>
-                <h1 id="appTitle" class="text-lg font-bold text-gray-700 hidden sm:block">Inicio</h1>
+                <h1 id="appTitle" class="text-lg font-bold text-gray-700 hidden sm:block dark:text-white">Inicio</h1>
             </div>
             
             <div class="flex items-center gap-6">
                 <div class="text-right hidden sm:block">
-                    <p id="userName" class="text-sm font-bold text-gray-800 leading-tight">Cargando...</p>
+                    <p id="userName" class="text-sm font-bold text-gray-800 leading-tight dark:text-white">Cargando...</p>
                     <p id="userRole" class="text-xs text-gray-500 uppercase font-semibold">--</p>
                 </div>
                 <div class="h-10 w-auto" aria-hidden="true">
@@ -120,7 +125,7 @@
 
         <div class="flex flex-1 relative overflow-hidden">
             
-            <aside id="sidebar" class="absolute inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-20 shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col">
+            <aside id="sidebar" class="absolute inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-20 shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col  dark:bg-gray-800 dark:border-gray-700">
                 <nav id="appMenu" class="flex-1 overflow-y-auto py-4 px-3 space-y-1 mt-2" aria-label="Navegación de módulos">
                     </nav>
 
@@ -144,7 +149,7 @@
 
             <main class="flex-1 flex flex-col relative bg-gray-100 w-full h-full overflow-hidden">
                 
-                <section id="home-dashboard" class="absolute inset-0 p-6 md:p-10 overflow-y-auto z-10 bg-gray-50 transition-opacity duration-300">
+                <section id="home-dashboard" class="absolute inset-0 p-6 md:p-10 overflow-y-auto z-10 bg-gray-50 transition-opacity duration-300 dark:bg-gray-900">
                     
                     <div id="welcome-banner" class="mb-3"></div>
 
