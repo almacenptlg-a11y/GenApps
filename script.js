@@ -286,8 +286,6 @@ function showHome() {
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800'));
 }
 
-// === Reemplaza tu función loadApp actual por esta versión ===
-
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     let urlSegura = app.link;
@@ -303,10 +301,9 @@ function loadApp(app, user) {
         urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; 
     }
 
-    // Apps externas (AppSheet, etc.) abren en ventana nueva
+    // Apps externas (AppSheet, etc.) abren en ventana nueva LIMPIA (Sin franja negra)
     if (['appsheet.com', 'plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
-        const w = window.innerWidth * 0.8, h = window.innerHeight * 0.8;
-        window.open(urlSegura, app.titulo, `width=${w},height=${h},top=${(window.innerHeight - h)/2},left=${(window.innerWidth - w)/2},toolbar=no`);
+        window.open(urlSegura, '_blank');
         return showHome(); 
     }
 
@@ -325,10 +322,7 @@ function loadApp(app, user) {
         if (btn.dataset.id === app.id) btn.classList.add('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800');
     });
 
-    // Cargar la URL en el Iframe
-    iframe.src = urlSegura; 
-    
-    // MAGIA DE MICRO-FRONTENDS: Qué pasa cuando el Iframe termina de cargar
+    // MAGIA DE MICRO-FRONTENDS: Asignar el listener ANTES de cambiar el src (Evita condiciones de carrera)
     iframe.onload = () => { 
         loader.classList.add('hidden');
         
@@ -346,6 +340,9 @@ function loadApp(app, user) {
             console.log("GENAPPS: Sesión enviada al módulo ->", app.titulo);
         }
     };
+
+    // Cargar la URL en el Iframe al final
+    iframe.src = urlSegura; 
 }
 
 function toggleMenu() {
