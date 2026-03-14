@@ -23,8 +23,13 @@ function initTheme() {
 
 function toggleTheme() {
     const isDark = document.documentElement.classList.toggle('dark');
+    const themeStr = isDark ? 'dark' : 'light';
     localStorage.setItem('genTheme', isDark ? 'dark' : 'light');
     actualizarIconoTema(isDark);
+    const iframe = document.getElementById('appViewer');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'THEME_UPDATE', theme: themeStr }, '*');
+    }
 }
 
 function actualizarIconoTema(isDark) {
@@ -408,7 +413,8 @@ window.addEventListener("message", (event) => {
                 // Le enviamos la sesión al Iframe
                 iframe.contentWindow.postMessage({ 
                     type: 'SESSION_SYNC', 
-                    user: JSON.parse(sessionStr) 
+                    user: JSON.parse(sessionStr),
+                    theme: localStorage.getItem('genTheme') || 'light'
                 }, '*');
             }
         } else {
