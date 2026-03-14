@@ -304,6 +304,7 @@ function showHome() {
     sessionStorage.removeItem('genCurrentApp');
 }
 
+// === Reemplaza tu función loadApp actual por esta versión limpia ===
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     sessionStorage.setItem('genCurrentApp', app.id);
@@ -320,13 +321,13 @@ function loadApp(app, user) {
         urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; 
     }
 
-    // Apps externas (AppSheet, etc.) abren en ventana nueva LIMPIA (Sin franja negra)
+    // Apps externas (AppSheet, etc.) abren en ventana nueva LIMPIA
     if (['appsheet.com', 'plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
         window.open(urlSegura, '_blank');
         return showHome(); 
     }
 
-    // Renderizado en Iframe Interno (Módulos Propios como Temperaturas)
+    // Renderizado en Iframe Interno
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
     
@@ -341,23 +342,9 @@ function loadApp(app, user) {
         if (btn.dataset.id === app.id) btn.classList.add('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800');
     });
 
-    // MAGIA DE MICRO-FRONTENDS: Asignar el listener ANTES de cambiar el src (Evita condiciones de carrera)
+    // SIMPLEMENTE QUITAMOS EL LOADER. La sesión se inyectará cuando el iframe responda 'MODULO_LISTO'
     iframe.onload = () => { 
         loader.classList.add('hidden');
-        
-        // Obtenemos la sesión nativa de GENAPPS
-        const sessionStr = localStorage.getItem('genUser');
-        if (sessionStr) {
-            const sessionData = JSON.parse(sessionStr);
-            
-            // Susurramos la sesión hacia dentro del Iframe
-            iframe.contentWindow.postMessage({ 
-                type: 'SESSION_SYNC', 
-                user: sessionData 
-            }, '*');
-            
-            console.log("GENAPPS: Sesión enviada al módulo ->", app.titulo);
-        }
     };
 
     // Cargar la URL en el Iframe al final
