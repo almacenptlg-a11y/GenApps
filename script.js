@@ -245,7 +245,19 @@ function initHub(currentUser) {
         cardsContainer.appendChild(card);
     });
 
-    showHome();
+   const appGuardada = sessionStorage.getItem('genCurrentApp');
+    
+    if (appGuardada) {
+        // Buscamos la app en el catálogo por su ID
+        const appToLoad = APPS_CATALOG.find(a => a.id === appGuardada);
+        if (appToLoad) {
+            loadApp(appToLoad, currentUser);
+        } else {
+            showHome(); // Fallback por si acaso el ID ya no existe
+        }
+    } else {
+        showHome(); // Comportamiento normal si es la primera vez que entra
+    }
 }
 
 function renderWelcomeBanner(nombre) {
@@ -284,10 +296,12 @@ function showHome() {
     document.getElementById('appTitle').textContent = "Inicio";
     document.getElementById('appViewer').src = "about:blank"; 
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800'));
+    sessionStorage.removeItem('genCurrentApp');
 }
 
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
+    sessionStorage.setItem('genCurrentApp', app.id);
     let urlSegura = app.link;
     
     // Tratamiento de URL
