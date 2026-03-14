@@ -286,32 +286,66 @@ function showHome() {
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800'));
 }
 
+// === Reemplaza tu función loadApp actual por esta versión ===
+
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     let urlSegura = app.link;
+    
+    // Tratamiento de URL
     try {
         const urlObj = new URL(app.link);
-        urlObj.searchParams.append('email', user.email); urlObj.searchParams.append('rol', user.rol); urlObj.searchParams.append('t', Date.now());
+        urlObj.searchParams.append('email', user.email); 
+        urlObj.searchParams.append('rol', user.rol); 
+        urlObj.searchParams.append('t', Date.now());
         urlSegura = urlObj.toString();
-    } catch (e) { urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; }
+    } catch (e) { 
+        urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; 
+    }
 
+    // Apps externas (AppSheet, etc.) abren en ventana nueva
     if (['appsheet.com', 'plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
         const w = window.innerWidth * 0.8, h = window.innerHeight * 0.8;
         window.open(urlSegura, app.titulo, `width=${w},height=${h},top=${(window.innerHeight - h)/2},left=${(window.innerWidth - w)/2},toolbar=no`);
         return showHome(); 
     }
 
+    // Renderizado en Iframe Interno (Módulos Propios como Temperaturas)
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
-    const iframe = document.getElementById('appViewer'), loader = document.getElementById('loader');
+    
+    const iframe = document.getElementById('appViewer');
+    const loader = document.getElementById('loader');
     
     loader.classList.remove('hidden');
     document.getElementById('appTitle').textContent = app.titulo;
+    
     document.querySelectorAll('.menu-btn').forEach(btn => {
         btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800');
         if (btn.dataset.id === app.id) btn.classList.add('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800');
     });
-    iframe.src = urlSegura; iframe.onload = () => loader.classList.add('hidden');
+
+    // Cargar la URL en el Iframe
+    iframe.src = urlSegura; 
+    
+    // MAGIA DE MICRO-FRONTENDS: Qué pasa cuando el Iframe termina de cargar
+    iframe.onload = () => { 
+        loader.classList.add('hidden');
+        
+        // Obtenemos la sesión nativa de GENAPPS
+        const sessionStr = localStorage.getItem('genUser');
+        if (sessionStr) {
+            const sessionData = JSON.parse(sessionStr);
+            
+            // Susurramos la sesión hacia dentro del Iframe
+            iframe.contentWindow.postMessage({ 
+                type: 'SESSION_SYNC', 
+                user: sessionData 
+            }, '*');
+            
+            console.log("GENAPPS: Sesión enviada al módulo ->", app.titulo);
+        }
+    };
 }
 
 function toggleMenu() {
