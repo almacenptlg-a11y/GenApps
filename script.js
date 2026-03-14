@@ -380,3 +380,28 @@ function optimizarLinkImagen(url) {
     }
     return url;
 }
+
+// === COMUNICACIÓN CON MICRO-FRONTENDS (HANDSHAKE) ===
+window.addEventListener("message", (event) => {
+    // Escuchamos si algún iframe nos dice que ya está listo
+    if (event.data && event.data.type === 'MODULO_LISTO') {
+        console.log("GENAPPS: Módulo Iframe listo. Inyectando sesión...");
+        
+        // Buscamos la sesión local
+        const sessionStr = localStorage.getItem('genUser');
+        
+        if (sessionStr) {
+            const iframe = document.getElementById('appViewer'); // ID de tu iframe en GENAPPS
+            
+            if (iframe && iframe.contentWindow) {
+                // Le enviamos la sesión al Iframe
+                iframe.contentWindow.postMessage({ 
+                    type: 'SESSION_SYNC', 
+                    user: JSON.parse(sessionStr) 
+                }, '*');
+            }
+        } else {
+            console.warn("GENAPPS: Iframe pidió sesión, pero no hay usuario logueado.");
+        }
+    }
+});
