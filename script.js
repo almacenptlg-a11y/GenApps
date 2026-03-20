@@ -291,18 +291,25 @@ function renderWelcomeBanner(nombre) {
     `;
 }
 
-function showHome() {
+// Añadimos el parámetro "desdeBotonAtras" para evitar bucles infinitos
+function showHome(desdeBotonAtras = false) {
     document.getElementById('home-dashboard').classList.remove('hidden');
     document.getElementById('iframe-container').classList.add('hidden');
     document.getElementById('appTitle').textContent = "Inicio";
     document.getElementById('appViewer').src = "about:blank"; 
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800'));
     sessionStorage.removeItem('genCurrentApp');
+
+    // MAGIA: Registramos el estado "Home" en el historial del celular
+    if (!desdeBotonAtras) {
+        history.pushState({ vista: 'home' }, '', '#home');
+    }
 }
 
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     sessionStorage.setItem('genCurrentApp', app.id);
+    history.pushState({ vista: 'modulo', id: app.id }, '', `#${app.id}`);
     let urlSegura = app.link;
     
     // Tratamiento de URL
@@ -426,4 +433,8 @@ window.addEventListener("message", (event) => {
             console.warn("GENAPPS: Iframe pidió sesión, pero no hay usuario logueado.");
         }
     }
+});
+
+window.addEventListener('popstate', (event) => {
+    showHome(true); 
 });
