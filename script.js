@@ -358,10 +358,6 @@ function loadApp(app, user) {
     iframe.src = urlSegura; 
 }
 
-    // Cargar la URL en el Iframe al final
-    iframe.src = urlSegura; 
-}
-
 function toggleMenu() {
     const s = document.getElementById('sidebar'), o = document.getElementById('sidebarOverlay');
     s.classList.toggle('-translate-x-full'); o.classList.toggle('hidden');
