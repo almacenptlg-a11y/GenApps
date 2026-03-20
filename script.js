@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme(); 
     checkAuthState();
     bindLoginEvents();
-    bindOnboardingEvents();
+    bindOnboardingEvents(); // Nueva llamada
     bindCredentialsEvents();
     
     if ('serviceWorker' in navigator) {
@@ -26,8 +26,6 @@ function toggleTheme() {
     const themeStr = isDark ? 'dark' : 'light';
     localStorage.setItem('genTheme', isDark ? 'dark' : 'light');
     actualizarIconoTema(isDark);
-    
-    // Transmitir tema a los iframes si están abiertos
     const iframe = document.getElementById('appViewer');
     if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage({ type: 'THEME_UPDATE', theme: themeStr }, '*');
@@ -48,7 +46,6 @@ function checkAuthState() {
     const loginView = document.getElementById('login-view');
     const hubView = document.getElementById('hub-view');
 
-    // La magia que quita la pantalla en blanco:
     if (userStr) {
         loginView.classList.add('hidden');
         hubView.classList.remove('hidden');
@@ -96,6 +93,7 @@ function bindLoginEvents() {
                 localStorage.setItem('genAppsCatalog', JSON.stringify(data.apps));
                 checkAuthState();
             } else if (data.status === 'require_profile') {
+                // SE ACTIVA EL ONBOARDING
                 abrirModalOnboarding(data.tempUser);
             } else {
                 throw new Error(data.message);
@@ -110,7 +108,7 @@ function bindLoginEvents() {
     });
 }
 
-// === ONBOARDING ===
+// === ONBOARDING (NUEVO) ===
 function abrirModalOnboarding(usuario) {
     document.getElementById('onboardUserTemp').value = usuario;
     const modal = document.getElementById('onboardingModal');
@@ -144,7 +142,9 @@ function bindOnboardingEvents() {
             if (data.status === 'success') {
                 document.getElementById('onboardingModal').classList.add('hidden');
                 document.getElementById('onboardingModal').classList.remove('flex');
-                document.getElementById('btnSubmit').click(); // Auto-login
+                
+                // AUTOLOGIN TRUCO: Volvemos a presionar el botón de Iniciar Sesión automáticamente
+                document.getElementById('btnSubmit').click();
             } else {
                 throw new Error(data.message);
             }
@@ -226,7 +226,6 @@ function initHub(currentUser) {
     APPS_CATALOG.forEach(app => {
         const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
 
-        // Menú Lateral
         const btn = document.createElement('button');
         btn.className = 'w-full flex items-center gap-3 p-2 mb-1 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-gray-800 hover:text-red-700 dark:hover:text-red-400 transition-all group menu-btn border border-transparent hover:border-red-100 dark:hover:border-gray-700';
         btn.dataset.id = app.id;
@@ -234,7 +233,7 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-        // Tarjetas
+        // APLICANDO DISEÑO MOBILE-FIRST EN LAS TARJETAS
         const card = document.createElement('div');
         card.className = 'group relative aspect-square bg-white dark:bg-gray-800 rounded-3xl sm:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 dark:border-gray-700 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
@@ -251,17 +250,18 @@ function initHub(currentUser) {
         cardsContainer.appendChild(card);
     });
 
-    // Restaurar estado previo
-    const appGuardada = sessionStorage.getItem('genCurrentApp');
+   const appGuardada = sessionStorage.getItem('genCurrentApp');
+    
     if (appGuardada) {
+        // Buscamos la app en el catálogo por su ID
         const appToLoad = APPS_CATALOG.find(a => a.id === appGuardada);
         if (appToLoad) {
             loadApp(appToLoad, currentUser);
         } else {
-            showHome();
+            showHome(); // Fallback por si acaso el ID ya no existe
         }
     } else {
-        showHome();
+        showHome(); // Comportamiento normal si es la primera vez que entra
     }
 }
 
@@ -280,6 +280,7 @@ function renderWelcomeBanner(nombre) {
         svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-pulse drop-shadow-lg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; 
     }
 
+    // APLICANDO DISEÑO MOBILE-FIRST EN EL BANNER (Padding reducido en sm)
     document.getElementById('welcome-banner').innerHTML = `
         <div class="flex items-center gap-3 sm:gap-8 p-5 sm:p-8 rounded-[2rem] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-all hover:shadow-md">
             <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full ${bgGlow} opacity-60 blur-3xl pointer-events-none"></div>
@@ -308,6 +309,7 @@ function loadApp(app, user) {
     sessionStorage.setItem('genCurrentApp', app.id);
     let urlSegura = app.link;
     
+    // Tratamiento de URL
     try {
         const urlObj = new URL(app.link);
         urlObj.searchParams.append('email', user.email); 
@@ -318,15 +320,23 @@ function loadApp(app, user) {
         urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; 
     }
 
-    // Detector de móviles
+    // === REGLA ARQUITECTÓNICA: DETECCIÓN DE MÓVILES ===
+    // Detectamos si la pantalla es pequeña o si el sistema operativo es móvil
     const esCelular = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Si es AppSheet Y es celular, o si es Plesk/Galaxy, abrir en ventana nueva
-    if ((urlSegura.includes('appsheet.com') && esCelular) || ['plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
+    // Si es AppSheet Y está en un celular -> Forzamos Pestaña Nueva para que funcione el Escáner
+    if (urlSegura.includes('appsheet.com') && esCelular) {
         window.open(urlSegura, '_blank');
         return showHome(); 
     }
 
+    // Apps externas (Plesk, Galaxy) siempre abren en ventana nueva
+    if (['plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
+        window.open(urlSegura, '_blank');
+        return showHome(); 
+    }
+
+    // === RENDERIZADO EN IFRAME ===
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
     
@@ -345,6 +355,10 @@ function loadApp(app, user) {
         loader.classList.add('hidden');
     };
 
+    iframe.src = urlSegura; 
+}
+
+    // Cargar la URL en el Iframe al final
     iframe.src = urlSegura; 
 }
 
@@ -381,19 +395,28 @@ function optimizarLinkImagen(url) {
     return url;
 }
 
-// === COMUNICACIÓN CON MICRO-FRONTENDS ===
+// === COMUNICACIÓN CON MICRO-FRONTENDS (HANDSHAKE) ===
 window.addEventListener("message", (event) => {
+    // Escuchamos si algún iframe nos dice que ya está listo
     if (event.data && event.data.type === 'MODULO_LISTO') {
+        console.log("GENAPPS: Módulo Iframe listo. Inyectando sesión...");
+        
+        // Buscamos la sesión local
         const sessionStr = localStorage.getItem('genUser');
+        
         if (sessionStr) {
-            const iframe = document.getElementById('appViewer');
+            const iframe = document.getElementById('appViewer'); // ID de tu iframe en GENAPPS
+            
             if (iframe && iframe.contentWindow) {
+                // Le enviamos la sesión al Iframe
                 iframe.contentWindow.postMessage({ 
                     type: 'SESSION_SYNC', 
                     user: JSON.parse(sessionStr),
                     theme: localStorage.getItem('genTheme') || 'light'
                 }, '*');
             }
+        } else {
+            console.warn("GENAPPS: Iframe pidió sesión, pero no hay usuario logueado.");
         }
     }
 });
