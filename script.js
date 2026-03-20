@@ -304,7 +304,6 @@ function showHome() {
     sessionStorage.removeItem('genCurrentApp');
 }
 
-// === Reemplaza tu función loadApp actual por esta versión limpia ===
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     sessionStorage.setItem('genCurrentApp', app.id);
@@ -321,13 +320,23 @@ function loadApp(app, user) {
         urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; 
     }
 
-    // Apps externas (AppSheet, etc.) abren en ventana nueva LIMPIA
-    if (['appsheet.com', 'plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
+    // === REGLA ARQUITECTÓNICA: DETECCIÓN DE MÓVILES ===
+    // Detectamos si la pantalla es pequeña o si el sistema operativo es móvil
+    const esCelular = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Si es AppSheet Y está en un celular -> Forzamos Pestaña Nueva para que funcione el Escáner
+    if (urlSegura.includes('appsheet.com') && esCelular) {
         window.open(urlSegura, '_blank');
         return showHome(); 
     }
 
-    // Renderizado en Iframe Interno
+    // Apps externas (Plesk, Galaxy) siempre abren en ventana nueva
+    if (['plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
+        window.open(urlSegura, '_blank');
+        return showHome(); 
+    }
+
+    // === RENDERIZADO EN IFRAME ===
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
     
@@ -342,10 +351,12 @@ function loadApp(app, user) {
         if (btn.dataset.id === app.id) btn.classList.add('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800');
     });
 
-    // SIMPLEMENTE QUITAMOS EL LOADER. La sesión se inyectará cuando el iframe responda 'MODULO_LISTO'
     iframe.onload = () => { 
         loader.classList.add('hidden');
     };
+
+    iframe.src = urlSegura; 
+}
 
     // Cargar la URL en el Iframe al final
     iframe.src = urlSegura; 
