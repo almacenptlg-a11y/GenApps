@@ -1,54 +1,13 @@
-// =========================================================================
-// SCRIPT.JS - CONTROL DE TEMPERATURAS (VERSIÓN OPTIMIZADA: IMPRESIÓN Y PDF)
-// =========================================================================
-
-const API_URL = "https://script.google.com/macros/s/AKfycbw9DjZJw8DelWMQQKvUxGhjHs1Ka0sWZPyHBu4lYwMg-2L-avGrzWNEoZOMXT8x9g3c/exec"; 
-const TODOS_LOS_TURNOS = ['07:30', '09:30', '11:30', '13:30', '15:30', '17:30'];
-let currentUser = null;
-let camarasDisponibles = [];
-let cambiosPendientes = {};
-
-let ultimaDataRevision = []; 
-let configRevisionActual = {}; 
-let modoEdicionActivo = false;
-
-
-// ==========================================
-// 1. GESTIÓN DE SESIÓN Y TEMA
-// ==========================================
-
-window.addEventListener('message', function(event) {
-    const data = event.data;
-    if (data && data.type === 'SESSION_SYNC') {
-        sessionStorage.setItem('moduloUser', JSON.stringify(data.user));
-        if (data.theme === 'dark') document.documentElement.classList.add('dark');
-        else document.documentElement.classList.remove('dark');
-        iniciarModuloConUsuario(data.user);
-    }
-    if (data && data.type === 'THEME_UPDATE') {
-        if (data.theme === 'dark') document.documentElement.classList.add('dark');
-        else document.documentElement.classList.remove('dark');
-    }
-});
 const API_URL = "https://script.google.com/macros/s/AKfycbxLJYQe6QZCiDARD1I5ngkqS3hjfzT1oYki9rlClbNpFf-fjLwXv_Lhp_TOcjLgOTZt/exec";
 
 // === CICLO DE VIDA ===
 document.addEventListener('DOMContentLoaded', () => {
-    window.parent.postMessage({ type: 'MODULO_LISTO' }, '*');
-    const savedUser = sessionStorage.getItem('moduloUser');
-    if (savedUser) iniciarModuloConUsuario(JSON.parse(savedUser));
     initTheme(); 
     checkAuthState();
     bindLoginEvents();
-    bindOnboardingEvents(); // Nueva llamada
+    bindOnboardingEvents();
     bindCredentialsEvents();
-
-    setTimeout(() => {
-        if (!currentUser) {
-            const uiUsuario = document.getElementById('txt-usuario-activo');
-            if(uiUsuario) uiUsuario.innerHTML = '<i class="ph ph-warning text-red-500"></i> Error de Sesión';
-        }
-    }, 3000);
+    
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
@@ -56,126 +15,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function configurarFechaInicial() {
-    const hoy = new Date();
-    hoy.setHours(hoy.getHours() - 5); 
-    const inputFecha = document.getElementById('val-fecha');
-    if (inputFecha) inputFecha.value = hoy.toISOString().split('T')[0]; 
-}
-
-function iniciarModuloConUsuario(usuario) {
-    currentUser = usuario;
-    const nombreDisplay = document.getElementById('txt-usuario-activo');
-    if (nombreDisplay) nombreDisplay.innerHTML = `<i class="ph ph-user-check"></i> ${usuario.nombre} | ${usuario.area}`;
-    configurarFechaInicial();
-    cargarCamaras();
-}
-
-// ==========================================
-// 2. COMUNICACIÓN API Y CARGA
-// ==========================================
-async function apiFetch(payload) {
-    try {
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        return await response.json();
-    } catch (error) { throw new Error("Fallo la comunicación con el servidor"); }
-}
-
-async function cargarCamaras() {
-    const select = document.getElementById('camara-select');
-    select.innerHTML = '<option value="">Descargando cámaras...</option>';
-    try {
-        const payload = { action: 'getCamarasConfig', userEmail: currentUser.usuario, userRol: currentUser.rol, userArea: currentUser.area };
-        const response = await apiFetch(payload);
-        if (response.status === 'success') {
-            camarasDisponibles = response.data;
-            llenarSelectCamaras(camarasDisponibles);
-            select.disabled = false;
-            select.classList.remove('cursor-not-allowed', 'bg-gray-50', 'dark:bg-gray-700');
-            select.classList.add('bg-white', 'dark:bg-gray-800');
-            const btnGuardar = document.getElementById('btn-guardar-lectura');
-            if (btnGuardar) {
-                btnGuardar.disabled = false;
-                btnGuardar.classList.remove('bg-gray-400', 'dark:bg-gray-600', 'cursor-not-allowed');
-                btnGuardar.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                btnGuardar.innerHTML = '<i class="ph ph-floppy-disk text-2xl"></i> Registrar Lectura';
-            }
-        }
-    } catch (error) { select.innerHTML = '<option value="">Error de conexión</option>'; }
-}
-
-function llenarSelectCamaras(camaras) {
-    const select = document.getElementById('camara-select');
-    select.innerHTML = '<option value="">Seleccione una cámara...</option>';
-    camaras.forEach(c => select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
-}
-
-// ==========================================
-// 3. REGISTRO DIARIO (VISTA 1)
-// ==========================================
-function formatearFecha(fechaInput) {
-    if (!fechaInput || fechaInput.length !== 10) return null;
-    const [y, m, d] = fechaInput.split('-');
-    return `${d}/${m}/${y}`;
 function initTheme() {
     const isDark = localStorage.getItem('genTheme') === 'dark';
     if (isDark) document.documentElement.classList.add('dark');
     actualizarIconoTema(isDark);
 }
 
-async function verificarTurnosDisponibles() {
-    const idCamara = document.getElementById('camara-select').value;
-    const inputFecha = document.getElementById('val-fecha').value;
-    const turnosContainer = document.getElementById('turnos-container');
-    document.getElementById('turno-seleccionado').value = ''; 
-
-    if (!idCamara || inputFecha.length !== 10) {
-        turnosContainer.innerHTML = '<div class="col-span-3 md:col-span-6 text-sm text-gray-500 py-3 text-center bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed dark:border-gray-600">Seleccione cámara y fecha primero...</div>';
-        return;
 function toggleTheme() {
     const isDark = document.documentElement.classList.toggle('dark');
     const themeStr = isDark ? 'dark' : 'light';
     localStorage.setItem('genTheme', isDark ? 'dark' : 'light');
     actualizarIconoTema(isDark);
+    
+    // Transmitir tema a los iframes si están abiertos
     const iframe = document.getElementById('appViewer');
     if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage({ type: 'THEME_UPDATE', theme: themeStr }, '*');
-}
-    turnosContainer.innerHTML = '<div class="col-span-3 md:col-span-6 text-sm text-blue-600 font-bold py-4 text-center bg-blue-50 dark:bg-blue-900/30 rounded-lg"><i class="ph ph-spinner animate-spin text-xl inline-block mr-2"></i> Consultando turnos...</div>';
-
-    try {
-        const response = await apiFetch({ action: 'getTurnosRegistrados', idCamara: idCamara, fecha: formatearFecha(inputFecha) });
-        if (response.status === 'success') {
-            let disponibles = 0;
-            turnosContainer.innerHTML = '';
-            TODOS_LOS_TURNOS.forEach(turno => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                if (response.data.includes(turno)) {
-                    btn.className = "py-3 rounded-xl border bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed flex flex-col items-center justify-center opacity-70";
-                    btn.innerHTML = `<i class="ph ph-check-square-offset text-2xl"></i><span class="font-bold text-sm">${turno}</span>`;
-                    btn.disabled = true;
-                } else {
-                    btn.className = "turno-btn py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-blue-400 hover:bg-blue-50 transition-all flex flex-col items-center cursor-pointer shadow-sm";
-                    btn.innerHTML = `<i class="ph ph-clock text-2xl"></i><span class="font-bold text-sm">${turno}</span>`;
-                    btn.onclick = () => seleccionarBotonTurno(turno, btn);
-                    disponibles++;
-                }
-                turnosContainer.appendChild(btn);
-            });
-            if (disponibles === 0) turnosContainer.innerHTML = '<div class="col-span-3 md:col-span-6 text-center text-amber-700 font-bold bg-amber-50 p-4 rounded-lg">⚠️ Todos los turnos han sido completados.</div>';
-        }
-    } catch (e) { turnosContainer.innerHTML = '<div class="col-span-3 md:col-span-6 text-center text-red-600 font-bold bg-red-50 p-3 rounded-lg">Error de red.</div>'; }
+    }
 }
 
-function seleccionarBotonTurno(turno, btnActivado) {
-    document.getElementById('turno-seleccionado').value = turno;
-    document.querySelectorAll('.turno-btn').forEach(b => {
-        b.className = "turno-btn py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400 transition-all flex flex-col items-center cursor-pointer shadow-sm";
-        b.querySelector('i').className = 'ph ph-clock text-2xl';
-    });
-    btnActivado.className = "turno-btn py-3 rounded-xl border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 shadow-md scale-[1.02] flex flex-col items-center cursor-pointer";
-    btnActivado.querySelector('i').className = 'ph ph-check-circle-fill text-2xl text-blue-600 dark:text-blue-400';
 function actualizarIconoTema(isDark) {
     const themeBtn = document.getElementById('theme-toggle-btn');
     if (!themeBtn) return;
@@ -184,95 +42,30 @@ function actualizarIconoTema(isDark) {
         : `<i class="ph ph-moon text-xl text-gray-600"></i><span class="font-medium text-sm">Tema Oscuro</span>`;
 }
 
-function evaluarParametrosEnVivo() {
-    const idCamara = document.getElementById('camara-select').value;
-    const camara = camarasDisponibles.find(c => c.id.toString() === idCamara.toString());
-    const panelEstado = document.getElementById('panel-estado');
-    const inputTemp = document.getElementById('val-temp').value;
-    const inputHum = document.getElementById('val-humedad').value;
-    const textareaIncidencia = document.getElementById('val-incidencia');
-    
-    if (!camara || inputTemp === '') {
-        panelEstado.classList.add('hidden');
-        textareaIncidencia.removeAttribute('required');
-        return;
-    }
-
-    const temp = parseFloat(inputTemp);
-    let esTempOk = (temp >= camara.minTemp && temp <= camara.maxTemp);
-    let esHumOk = true; 
-
-    if (camara.minHr !== null && camara.maxHr !== null && camara.maxHr > 0 && inputHum !== '') {
-        const hum = parseFloat(inputHum);
-        let minH = camara.minHr <= 1 ? camara.minHr * 100 : camara.minHr;
-        let maxH = camara.maxHr <= 1 ? camara.maxHr * 100 : camara.maxHr;
-        esHumOk = (hum >= minH && hum <= maxH);
-    }
 // === MÁQUINA DE ESTADOS ===
 function checkAuthState() {
     const userStr = localStorage.getItem('genUser');
     const loginView = document.getElementById('login-view');
     const hubView = document.getElementById('hub-view');
 
-    panelEstado.classList.remove('hidden');
-    if (esTempOk && esHumOk) {
-        panelEstado.className = 'rounded-xl p-4 border flex items-start gap-4 bg-green-50 dark:bg-green-900/30 border-green-200';
-        document.getElementById('icono-estado').innerHTML = '<i class="ph ph-check-circle text-4xl text-green-600"></i>';
-        document.getElementById('titulo-estado').innerHTML = '<span class="text-green-800 dark:text-green-400 font-bold">RANGO OK</span>';
-        document.getElementById('desc-estado').innerHTML = '<span class="text-green-700 dark:text-green-500 text-sm">Proceda a registrar.</span>';
-        textareaIncidencia.removeAttribute('required'); 
+    // La magia que quita la pantalla en blanco:
     if (userStr) {
         loginView.classList.add('hidden');
         hubView.classList.remove('hidden');
         initHub(JSON.parse(userStr));
-} else {
-        panelEstado.className = 'rounded-xl p-4 border flex items-start gap-4 bg-red-50 dark:bg-red-900/30 border-red-300 animate-pulse';
-        document.getElementById('icono-estado').innerHTML = '<i class="ph ph-warning-octagon text-4xl text-red-600"></i>';
-        document.getElementById('titulo-estado').innerHTML = '<span class="text-red-800 dark:text-red-400 font-bold">⚠️ DESVIACIÓN DETECTADA</span>';
-        document.getElementById('desc-estado').innerHTML = '<span class="text-red-700 dark:text-red-500 text-sm">Describa la medida correctiva (Obligatorio).</span>';
-        textareaIncidencia.setAttribute('required', 'true'); 
+    } else {
         hubView.classList.add('hidden');
         loginView.classList.remove('hidden');
         const form = document.getElementById('loginForm');
         if (form) form.reset();
-}
+    }
 }
 
-document.getElementById('val-temp').addEventListener('input', evaluarParametrosEnVivo);
-document.getElementById('val-humedad').addEventListener('input', evaluarParametrosEnVivo);
-
-document.getElementById('camara-select').addEventListener('change', (e) => {
-    const camara = camarasDisponibles.find(c => c.id.toString() === e.target.value.toString());
-    const boxHumedad = document.getElementById('box-humedad');
-    const banner = document.getElementById('banner-limites');
 // === LOGIN ===
 function bindLoginEvents() {
     const form = document.getElementById('loginForm');
     if (!form) return; 
-
-    if (!camara) {
-        banner.classList.add('hidden'); boxHumedad.classList.add('hidden');
-        document.getElementById('val-humedad').removeAttribute('required');
-        verificarTurnosDisponibles(); 
-        return;
-    }
-    banner.classList.remove('hidden');
-    document.getElementById('txt-limites-temp').innerHTML = `<i class="ph ph-thermometer-simple text-blue-600"></i> Temp: ${camara.minTemp}°C a ${camara.maxTemp}°C`;
-
-    if (camara.minHr !== null && camara.maxHr !== null && camara.maxHr > 0) {
-        boxHumedad.classList.remove('hidden');
-        document.getElementById('val-humedad').setAttribute('required', 'true');
-        let minH = camara.minHr <= 1 ? camara.minHr * 100 : camara.minHr;
-        let maxH = camara.maxHr <= 1 ? camara.maxHr * 100 : camara.maxHr;
-        document.getElementById('txt-limites-hr').innerHTML = `<i class="ph ph-drop text-blue-600"></i> HR: ${minH}% a ${maxH}%`;
-    } else {
-        boxHumedad.classList.add('hidden');
-        document.getElementById('val-humedad').removeAttribute('required');
-        document.getElementById('txt-limites-hr').innerHTML = '';
-    }
-    verificarTurnosDisponibles();
-    evaluarParametrosEnVivo();
-});
+    
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSubmit');
@@ -288,22 +81,6 @@ function bindLoginEvents() {
             pass: document.getElementById('password').value
         };
 
-document.getElementById('form-lectura-camara').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btn-guardar-lectura');
-    const turnoElegido = document.getElementById('turno-seleccionado').value;
-    if (!turnoElegido) return alert("Seleccione un turno disponible.");
-
-    const payload = {
-        action: 'registrarLecturaCamara',
-        idCamara: document.getElementById('camara-select').value,
-        fecha: formatearFecha(document.getElementById('val-fecha').value),
-        turno: turnoElegido,
-        temperatura: document.getElementById('val-temp').value,
-        humedad: document.getElementById('val-humedad').value,
-        incidencia: document.getElementById('val-incidencia').value,
-        userName: currentUser.nombre 
-    };
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -311,73 +88,14 @@ document.getElementById('form-lectura-camara').addEventListener('submit', async 
                 body: JSON.stringify(payload)
             });
 
-    btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Guardando...';
-    try {
-        const response = await apiFetch(payload);
-        if (response.status === 'success') {
-            btn.innerHTML = '<i class="ph ph-check-circle"></i> ¡Exito!';
-            setTimeout(() => {
-                const c = document.getElementById('camara-select').value;
-                const f = document.getElementById('val-fecha').value;
-                document.getElementById('form-lectura-camara').reset();
-                document.getElementById('camara-select').value = c;
-                document.getElementById('val-fecha').value = f;
-                document.getElementById('panel-estado').classList.add('hidden');
-                verificarTurnosDisponibles();
-                btn.disabled = false; btn.innerHTML = '<i class="ph ph-floppy-disk text-2xl"></i> Registrar Lectura';
-            }, 1500);
-        } else {
-            alert('Error: ' + response.message);
-            btn.disabled = false; btn.innerHTML = '<i class="ph ph-floppy-disk text-2xl"></i> Registrar Lectura';
-        }
-    } catch (error) {
-        alert('Fallo de red.');
-        btn.disabled = false; btn.innerHTML = '<i class="ph ph-floppy-disk text-2xl"></i> Registrar Lectura';
-    }
-});
             if (!response.ok) throw new Error("Error al conectar con el servidor.");
             const data = await response.json();
 
-// ==========================================
-// 4. NAVEGACIÓN (TABS)
-// ==========================================
-document.getElementById('tab-registro').addEventListener('click', () => switchTab('registro'));
-document.getElementById('tab-revision').addEventListener('click', () => switchTab('revision'));
-
-function switchTab(tab) {
-    const vReg = document.getElementById('vista-registro');
-    const vRev = document.getElementById('vista-revision');
-    const tReg = document.getElementById('tab-registro');
-    const tRev = document.getElementById('tab-revision');
-
-    if (tab === 'registro') {
-        vReg.classList.replace('hidden', 'block');
-        vRev.classList.replace('flex', 'hidden'); 
-        tReg.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
-        tReg.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-        tRev.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
-        tRev.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-    } else {
-        vRev.classList.replace('hidden', 'flex'); 
-        vReg.classList.replace('block', 'hidden');
-        tRev.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
-        tRev.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-        tReg.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
-        tReg.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-
-        const revCamara = document.getElementById('rev-camara');
-        if (revCamara.options.length <= 1 && camarasDisponibles.length > 0) {
-            revCamara.innerHTML = '<option value="">Seleccione...</option>';
-            camarasDisponibles.forEach(c => revCamara.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
-            const hoy = new Date();
-            document.getElementById('rev-mes').value = hoy.getMonth() + 1;
-            document.getElementById('rev-anio').value = hoy.getFullYear();
             if (data.status === 'success') {
                 localStorage.setItem('genUser', JSON.stringify(data.user));
                 localStorage.setItem('genAppsCatalog', JSON.stringify(data.apps));
                 checkAuthState();
             } else if (data.status === 'require_profile') {
-                // SE ACTIVA EL ONBOARDING
                 abrirModalOnboarding(data.tempUser);
             } else {
                 throw new Error(data.message);
@@ -388,64 +106,11 @@ function switchTab(tab) {
         } finally {
             btn.innerHTML = 'Ingresar';
             btn.disabled = false;
-}
-    }
+        }
     });
 }
 
-// ==========================================
-// 5. DASHBOARD JEFATURA (UI WEB)
-// ==========================================
-document.getElementById('rev-camara').addEventListener('change', (e) => {
-    const camara = camarasDisponibles.find(c => c.id.toString() === e.target.value.toString());
-    if (!camara) {
-        document.getElementById('rev-herramientas').classList.add('hidden');
-        return;
-    }
-    document.getElementById('rev-txt-temp').innerHTML = `<i class="ph ph-thermometer-simple text-blue-600"></i> Temp: ${camara.minTemp}°C a ${camara.maxTemp}°C`;
-    if (camara.minHr !== null && camara.maxHr !== null && camara.maxHr > 0) {
-        let minH = camara.minHr <= 1 ? camara.minHr * 100 : camara.minHr;
-        let maxH = camara.maxHr <= 1 ? camara.maxHr * 100 : camara.maxHr;
-        document.getElementById('rev-txt-hr').innerHTML = `<i class="ph ph-drop text-blue-600"></i> HR: ${minH}% a ${maxH}%`;
-    } else { document.getElementById('rev-txt-hr').innerHTML = ''; }
-    
-    document.getElementById('rev-herramientas').classList.remove('hidden');
-    document.getElementById('rev-herramientas').classList.add('flex');
-});
-
-document.getElementById('btn-toggle-edicion').addEventListener('click', () => {
-    const rolesPermitidos = ['JEFE', 'ADMINISTRADOR', 'SUPERVISOR'];
-    if (!currentUser || !rolesPermitidos.includes(currentUser.rol.toUpperCase())) {
-        return alert("Permisos insuficientes para editar.");
-    }
-    if (Object.keys(cambiosPendientes).length > 0) {
-        if(!confirm("Tienes cambios sin guardar. Si desactivas la edición se perderán. ¿Continuar?")) return;
-        cambiosPendientes = {}; actualizarPanelMasivo();
-    }
-    modoEdicionActivo = !modoEdicionActivo;
-    const btn = document.getElementById('btn-toggle-edicion');
-    
-    if (modoEdicionActivo) {
-        btn.classList.replace('bg-white', 'bg-blue-600');
-        btn.classList.replace('text-gray-800', 'text-white');
-        document.getElementById('txt-btn-edicion').innerText = "Cerrar Edición";
-    } else {
-        btn.classList.replace('bg-blue-600', 'bg-white');
-        btn.classList.replace('text-white', 'text-gray-800');
-        document.getElementById('txt-btn-edicion').innerText = "Activar Edición";
-    }
-    if (ultimaDataRevision.length > 0 || configRevisionActual.mes) {
-        if (modoEdicionActivo) {
-            document.getElementById('tabla-mensaje').classList.add('hidden');
-            document.getElementById('tabla-container').classList.remove('hidden');
-        } else if (ultimaDataRevision.length === 0) {
-            document.getElementById('tabla-container').classList.add('hidden');
-            document.getElementById('tabla-mensaje').classList.remove('hidden');
-        }
-        dibujarTabla(ultimaDataRevision, configRevisionActual);
-    }
-});
-// === ONBOARDING (NUEVO) ===
+// === ONBOARDING ===
 function abrirModalOnboarding(usuario) {
     document.getElementById('onboardUserTemp').value = usuario;
     const modal = document.getElementById('onboardingModal');
@@ -453,18 +118,10 @@ function abrirModalOnboarding(usuario) {
     modal.classList.add('flex');
 }
 
-document.getElementById('btn-generar-reporte').addEventListener('click', async () => {
-    const idCamara = document.getElementById('rev-camara').value;
-    const mes = document.getElementById('rev-mes').value;
-    const anio = document.getElementById('rev-anio').value;
-    if (!idCamara) return alert("Seleccione una cámara.");
 function bindOnboardingEvents() {
     const form = document.getElementById('formOnboarding');
     if (!form) return;
 
-    // Ocultar botones de reporte visual hasta que cargue la tabla
-    document.getElementById('btn-descargar-pdf').classList.add('hidden');
-    document.getElementById('btn-imprimir').classList.add('hidden');
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnOnboardSubmit');
@@ -477,50 +134,20 @@ function bindOnboardingEvents() {
             correo: document.getElementById('onboardCorreo').value
         };
 
-    const camaraSel = camarasDisponibles.find(c => c.id.toString() === idCamara.toString());
-    const usaHumedad = camaraSel && camaraSel.minHr !== null && camaraSel.maxHr !== null && camaraSel.maxHr > 0;
-    configRevisionActual = { mes: parseInt(mes), anio: parseInt(anio), usaHumedad: usaHumedad };
         btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Guardando...';
         btn.disabled = true;
 
-    const btn = document.getElementById('btn-generar-reporte');
-    const originalBtnHTML = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i>';
-    
-    document.getElementById('tabla-container').classList.add('hidden');
-    document.getElementById('tabla-mensaje').classList.remove('hidden');
-    document.getElementById('tabla-mensaje').innerHTML = '<i class="ph ph-spinner animate-spin text-4xl mb-3 text-blue-500"></i><br>Procesando Matriz...';
         try {
             const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
             const data = await response.json();
 
-    try {
-        if (Object.keys(cambiosPendientes).length > 0) { cambiosPendientes = {}; actualizarPanelMasivo(); }
-        const response = await apiFetch({ action: 'getRegistrosRevision', idCamara: idCamara, mes: mes, anio: anio });
-        if (response.status === 'success') {
-            ultimaDataRevision = response.data; 
-            if (ultimaDataRevision.length === 0 && !modoEdicionActivo) {
-                document.getElementById('tabla-mensaje').innerHTML = '<i class="ph ph-folder-open text-5xl mb-3 text-gray-400"></i><br>Sin registros en este mes.';
-            } else {
-                document.getElementById('tabla-mensaje').classList.add('hidden');
-                document.getElementById('tabla-container').classList.remove('hidden');
-                dibujarTabla(ultimaDataRevision, configRevisionActual);
             if (data.status === 'success') {
                 document.getElementById('onboardingModal').classList.add('hidden');
                 document.getElementById('onboardingModal').classList.remove('flex');
-
-                // Mostrar los botones de exportación solo cuando hay reporte generado
-                document.getElementById('btn-descargar-pdf').classList.remove('hidden');
-                document.getElementById('btn-imprimir').classList.remove('hidden');
-                // AUTOLOGIN TRUCO: Volvemos a presionar el botón de Iniciar Sesión automáticamente
-                document.getElementById('btnSubmit').click();
+                document.getElementById('btnSubmit').click(); // Auto-login
             } else {
                 throw new Error(data.message);
-}
-        } else document.getElementById('tabla-mensaje').innerHTML = `Error: ${response.message}`;
-    } catch (error) { document.getElementById('tabla-mensaje').innerHTML = 'Error de red.'; } 
-    finally { btn.disabled = false; btn.innerHTML = originalBtnHTML; }
-});
+            }
         } catch (error) {
             alert("Error: " + error.message);
         } finally {
@@ -530,39 +157,11 @@ function bindOnboardingEvents() {
     });
 }
 
-function dibujarTabla(data, config) {
-    const thead = document.getElementById('tabla-head');
-    const tbody = document.getElementById('tabla-body');
-    const diasEnMes = new Date(config.anio, config.mes, 0).getDate();
-    const usaHumedad = config.usaHumedad;
-    
-    let headHTML = '';
-    const classThTurno = "sticky top-0 z-20 px-4 py-2 text-center border-b border-r border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 shadow-sm";
-    const classThDia = "sticky top-0 left-0 z-30 px-4 py-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-300 w-16 text-center border-b border-r border-gray-200 dark:border-gray-600 align-middle shadow-sm";
-
-    if (usaHumedad) {
-        headHTML += `<tr><th rowspan="2" class="${classThDia}">DÍA</th>`;
-        TODOS_LOS_TURNOS.forEach(t => headHTML += `<th colspan="2" class="${classThTurno}">${t}</th>`);
-        headHTML += '</tr><tr>';
-        const subTh = "sticky top-[36px] z-20 px-2 py-1 text-center text-[11px] font-bold border-b border-r border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800";
-        TODOS_LOS_TURNOS.forEach(t => { headHTML += `<th class="${subTh} text-gray-500">°C</th><th class="${subTh} text-blue-600">%HR</th>`; });
-        headHTML += '</tr>';
-    } else {
-        headHTML += `<tr><th class="${classThDia}">DÍA</th>`;
-        TODOS_LOS_TURNOS.forEach(t => headHTML += `<th class="${classThTurno}">${t}</th>`);
-        headHTML += '</tr>';
-    }
-    thead.innerHTML = headHTML;
 // === CREDENCIALES ===
 function bindCredentialsEvents() {
     const form = document.getElementById('formCredenciales');
     if (!form) return;
 
-    let bodyHTML = '';
-    const FERIADOS_PERU = ['01/01', '01/05', '07/06', '29/06', '23/07', '28/07', '29/07','06/08', '30/08', '08/10', '01/11', '08/12', '09/12', '25/12'];
-    const diasAbrev = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const rolesPermitidos = ['JEFE', 'ADMINISTRADOR', 'SUPERVISOR'];
-    const puedeEditar = currentUser && rolesPermitidos.includes(currentUser.rol.toUpperCase());
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
@@ -579,123 +178,29 @@ function bindCredentialsEvents() {
             newPass: document.getElementById('newPassword').value
         };
 
-    for (let d = 1; d <= diasEnMes; d++) {
-        const fechaFila = new Date(config.anio, config.mes - 1, d); 
-        const indiceDia = fechaFila.getDay(); 
-        const diaMesStr = `${d.toString().padStart(2, '0')}/${config.mes.toString().padStart(2, '0')}`;
-        const esInactivo = (indiceDia === 0 || indiceDia === 6) || FERIADOS_PERU.includes(diaMesStr);
         btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Guardando...';
         btn.disabled = true;
 
-        let claseFila = "transition-colors " + (esInactivo ? "bg-gray-100 dark:bg-gray-800/80 opacity-90" : "hover:bg-gray-50 dark:hover:bg-gray-700/50");
-        let claseCeldaCabecera = `sticky left-0 z-10 px-4 py-2 text-center border-r border-b border-gray-200 dark:border-gray-700 shadow-sm ${esInactivo ? 'bg-gray-200 dark:bg-gray-700/80' : 'bg-gray-50 dark:bg-gray-800'}`;
         try {
             const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
             const data = await response.json();
 
-        bodyHTML += `<tr class="${claseFila}"><td class="${claseCeldaCabecera}"><span class="block text-[10px] uppercase ${esInactivo ? 'text-gray-400' : 'text-gray-500'} font-bold">${diasAbrev[indiceDia]}</span><span class="${esInactivo ? 'text-gray-500' : 'text-gray-900 dark:text-white'} font-bold">${d}</span></td>`;
-        
-        TODOS_LOS_TURNOS.forEach(turno => {
-            const reg = data.find(r => r.dia === d && r.turno === turno);
-            const fechaCelda = `${d.toString().padStart(2, '0')}/${config.mes.toString().padStart(2, '0')}/${config.anio}`;
-            const cellClass = `px-2 py-2 text-center border-r border-b border-gray-200 dark:border-gray-700 min-w-[70px]`;
-
-            if (reg) {
-                const isDesviacion = reg.estado === 'DESVIACION';
-                const bgWarning = isDesviacion ? 'bg-red-50 dark:bg-red-900/10' : '';
-                const tooltip = `Por: ${reg.usuario}\nObs: ${reg.incidencia || 'Ninguna'}`;
-                const obsSpan = isDesviacion ? `<span class="block text-[9px] text-red-500 font-bold mt-1 tracking-tighter" title="${tooltip}">Ver Obs</span>` : '';
-
-                bodyHTML += `<td class="${cellClass} ${bgWarning}" title="${tooltip}">${generarCelda(reg.temp, fechaCelda, turno, 'temp', puedeEditar, isDesviacion)} ${obsSpan}</td>`;
-                if (usaHumedad) bodyHTML += `<td class="${cellClass} ${bgWarning}" title="${tooltip}">${generarCelda(reg.humedad || '', fechaCelda, turno, 'hum', puedeEditar, isDesviacion)}</td>`;
             if (data.status === 'success') {
                 alert("¡Credenciales actualizadas!\nPor seguridad, tu sesión se cerrará ahora.");
                 closeCredentialsModal();
                 logout(); 
-} else {
-                const bgInactivo = esInactivo ? 'bg-gray-100/50 dark:bg-gray-800/30' : '';
-                bodyHTML += `<td class="${cellClass} ${bgInactivo}">${generarCelda('', fechaCelda, turno, 'temp', puedeEditar, false)}</td>`;
-                if (usaHumedad) bodyHTML += `<td class="${cellClass} ${bgInactivo}">${generarCelda('', fechaCelda, turno, 'hum', puedeEditar, false)}</td>`;
+            } else {
                 throw new Error(data.message);
-}
-        });
-        bodyHTML += '</tr>';
-    }
-    tbody.innerHTML = bodyHTML;
-}
-
-// ==========================================
-// 6. LÓGICA DE EDICIÓN (MODAL Y CARRITO)
-// ==========================================
-function generarCelda(valor, fecha, turno, tipo, puedeEditar, isDesviacion) {
-    if (!modoEdicionActivo || !puedeEditar) {
-        let textStyle = valor === '' ? 'text-gray-300 dark:text-gray-600' : (isDesviacion ? 'text-red-600 font-bold' : 'text-gray-800 dark:text-gray-200 font-semibold');
-        if (tipo === 'hum' && valor !== '') textStyle = 'text-blue-600 font-medium dark:text-blue-400';
-        return `<span class="text-sm ${textStyle}">${valor === '' ? '-' : valor + (tipo === 'temp' ? '°' : '%')}</span>`;
-    }
-    return `<input type="number" step="0.1" value="${valor}" data-old="${valor}" data-fecha="${fecha}" data-turno="${turno}" data-tipo="${tipo}" placeholder="${tipo === 'temp' ? '°' : '%'}" class="w-full bg-transparent text-center focus:outline-none focus:bg-blue-50 dark:focus:bg-blue-900/50 focus:ring-2 focus:ring-blue-400 rounded font-bold cursor-text text-sm ${valor === '' ? 'text-gray-900 dark:text-gray-100' : ''}" onblur="validarCeldaMasiva(this)" onkeydown="if(event.key==='Enter') this.blur()">`;
-}
-
-function solicitarJustificacion(titulo, mensaje, tipoAlerta) {
-    return new Promise((resolve) => {
-        const modal = document.getElementById('modal-justificacion');
-        const tituloEl = document.getElementById('modal-just-titulo');
-        const mensajeEl = document.getElementById('modal-just-mensaje');
-        const inputEl = document.getElementById('modal-just-input');
-        const errorEl = document.getElementById('modal-just-error');
-        const btnConf = document.getElementById('btn-just-confirmar');
-
-        if (tipoAlerta === 'rango') {
-            document.getElementById('modal-just-icono').className = 'ph ph-warning-octagon text-3xl text-red-500';
-            tituloEl.className = 'font-bold text-lg text-red-600';
-            btnConf.className = 'px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 shadow-sm';
-        } else if (tipoAlerta === 'borrado') {
-            document.getElementById('modal-just-icono').className = 'ph ph-trash text-3xl text-orange-500';
-            tituloEl.className = 'font-bold text-lg text-orange-600';
-            btnConf.className = 'px-4 py-2 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 shadow-sm';
-        } else {
-            document.getElementById('modal-just-icono').className = 'ph ph-pencil-simple text-3xl text-blue-500';
-            tituloEl.className = 'font-bold text-lg text-blue-600';
-            btnConf.className = 'px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm';
+            }
         } catch (error) {
             alert("Error: " + error.message);
         } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
+        }
+    });
 }
 
-        tituloEl.textContent = titulo; mensajeEl.textContent = mensaje; inputEl.value = ''; errorEl.classList.add('hidden');
-        modal.classList.remove('hidden'); setTimeout(() => { modal.firstElementChild.classList.remove('scale-95'); inputEl.focus(); }, 10);
-
-        const cerrarModal = (resultado) => {
-            modal.firstElementChild.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); resolve(resultado); }, 200);
-        };
-
-        const onConfirm = () => { if (!inputEl.value.trim()) { errorEl.classList.remove('hidden'); inputEl.focus(); return; } limpiarEventos(); cerrarModal(inputEl.value.trim()); };
-        const onCancel = () => { limpiarEventos(); cerrarModal(null); };
-        const onEnterKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onConfirm(); } };
-        const limpiarEventos = () => { btnConf.removeEventListener('click', onConfirm); document.getElementById('btn-just-cancelar').removeEventListener('click', onCancel); inputEl.removeEventListener('keydown', onEnterKey); };
-
-        btnConf.addEventListener('click', onConfirm); document.getElementById('btn-just-cancelar').addEventListener('click', onCancel); inputEl.addEventListener('keydown', onEnterKey);
-});
-}
-
-async function validarCeldaMasiva(input) {
-    const newVal = input.value.trim(), oldVal = input.getAttribute('data-old').trim(), fecha = input.getAttribute('data-fecha'), turno = input.getAttribute('data-turno'), tipo = input.getAttribute('data-tipo'), key = `${fecha}_${turno}`;
-    const currentCartVal = (cambiosPendientes[key] && cambiosPendientes[key][tipo] !== undefined) ? cambiosPendientes[key][tipo] : oldVal;
-    if (newVal === currentCartVal) return;
-
-    const camara = camarasDisponibles.find(c => c.id.toString() === document.getElementById('rev-camara').value.toString());
-    let isDesviacion = false, incidencia = "";
-
-    if (newVal !== '') {
-        const num = parseFloat(newVal);
-        if (tipo === 'temp' && (num < camara.minTemp || num > camara.maxTemp)) isDesviacion = true;
-        if (tipo === 'hum' && camara.minHr) {
-             let minH = camara.minHr <= 1 ? camara.minHr * 100 : camara.minHr;
-             let maxH = camara.maxHr <= 1 ? camara.maxHr * 100 : camara.maxHr;
-             if (num < minH || num > maxH) isDesviacion = true;
 // === LÓGICA DEL HUB ===
 function initHub(currentUser) {
     document.getElementById('userName').textContent = currentUser.nombre;
@@ -721,6 +226,7 @@ function initHub(currentUser) {
     APPS_CATALOG.forEach(app => {
         const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
 
+        // Menú Lateral
         const btn = document.createElement('button');
         btn.className = 'w-full flex items-center gap-3 p-2 mb-1 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-gray-800 hover:text-red-700 dark:hover:text-red-400 transition-all group menu-btn border border-transparent hover:border-red-100 dark:hover:border-gray-700';
         btn.dataset.id = app.id;
@@ -728,7 +234,7 @@ function initHub(currentUser) {
         btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
         menu.appendChild(btn);
 
-        // APLICANDO DISEÑO MOBILE-FIRST EN LAS TARJETAS
+        // Tarjetas
         const card = document.createElement('div');
         card.className = 'group relative aspect-square bg-white dark:bg-gray-800 rounded-3xl sm:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-shadow duration-500 border border-gray-100 dark:border-gray-700 flex flex-col justify-end';
         card.onclick = () => loadApp(app, currentUser);
@@ -745,30 +251,20 @@ function initHub(currentUser) {
         cardsContainer.appendChild(card);
     });
 
-   const appGuardada = sessionStorage.getItem('genCurrentApp');
-    
+    // Restaurar estado previo
+    const appGuardada = sessionStorage.getItem('genCurrentApp');
     if (appGuardada) {
-        // Buscamos la app en el catálogo por su ID
         const appToLoad = APPS_CATALOG.find(a => a.id === appGuardada);
         if (appToLoad) {
             loadApp(appToLoad, currentUser);
         } else {
-            showHome(); // Fallback por si acaso el ID ya no existe
-}
+            showHome();
+        }
     } else {
-        showHome(); // Comportamiento normal si es la primera vez que entra
-}
+        showHome();
+    }
 }
 
-    if (isDesviacion || (oldVal !== '' && newVal !== oldVal)) {
-        let titulo = isDesviacion ? "Valores Fuera de Rango" : "Modificación Histórica";
-        let mensaje = isDesviacion ? "Supera los límites permitidos. Ingrese medida correctiva:" : "Modificando registro. Indique motivo:";
-        let tipoAlerta = isDesviacion ? 'rango' : 'edicion';
-        if (newVal === '') { titulo = "Borrar Registro"; mensaje = "Intentando eliminar registro. Motivo:"; tipoAlerta = 'borrado'; }
-
-        let motivo = await solicitarJustificacion(titulo, mensaje, tipoAlerta);
-        if (!motivo) { input.value = currentCartVal; return; }
-        incidencia = motivo;
 function renderWelcomeBanner(nombre) {
     const horaLocal = new Date().getHours();
     let saludo, svgIcon, colorCls, bgGlow;
@@ -782,26 +278,8 @@ function renderWelcomeBanner(nombre) {
     } else { 
         saludo = "Buenas noches"; colorCls = "text-indigo-500 dark:text-indigo-400"; bgGlow = "bg-indigo-100 dark:bg-indigo-900/30"; 
         svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-pulse drop-shadow-lg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; 
-}
-
-    if (!cambiosPendientes[key]) {
-        const tr = input.closest('tr');
-        const iTemp = tr.querySelector(`input[data-fecha="${fecha}"][data-turno="${turno}"][data-tipo="temp"]`);
-        const iHum = tr.querySelector(`input[data-fecha="${fecha}"][data-turno="${turno}"][data-tipo="hum"]`);
-        cambiosPendientes[key] = { fecha: fecha, turno: turno, temp: iTemp ? iTemp.getAttribute('data-old') : '', hum: iHum ? iHum.getAttribute('data-old') : '', incidencia: '' };
     }
-    cambiosPendientes[key][tipo] = newVal;
-    if (incidencia) cambiosPendientes[key].incidencia = incidencia;
 
-    const tr = input.closest('tr');
-    const iTemp = tr.querySelector(`input[data-fecha="${fecha}"][data-turno="${turno}"][data-tipo="temp"]`);
-    const iHum = tr.querySelector(`input[data-fecha="${fecha}"][data-turno="${turno}"][data-tipo="hum"]`);
-    if ((iTemp ? iTemp.getAttribute('data-old') : '') === (iTemp ? iTemp.value.trim() : '') && (iHum ? iHum.getAttribute('data-old') : '') === (iHum ? iHum.value.trim() : '')) {
-        delete cambiosPendientes[key]; 
-        if(iTemp) iTemp.classList.remove('bg-yellow-100', 'text-yellow-900'); if(iHum) iHum.classList.remove('bg-yellow-100', 'text-yellow-900');
-    } else { input.classList.add('bg-yellow-100', 'text-yellow-900'); }
-    actualizarPanelMasivo();
-    // APLICANDO DISEÑO MOBILE-FIRST EN EL BANNER (Padding reducido en sm)
     document.getElementById('welcome-banner').innerHTML = `
         <div class="flex items-center gap-3 sm:gap-8 p-5 sm:p-8 rounded-[2rem] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-all hover:shadow-md">
             <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full ${bgGlow} opacity-60 blur-3xl pointer-events-none"></div>
@@ -816,13 +294,6 @@ function renderWelcomeBanner(nombre) {
     `;
 }
 
-function actualizarPanelMasivo() {
-    const count = Object.keys(cambiosPendientes).length;
-    const btnGuardar = document.getElementById('btn-ejecutar-masivo');
-    if (count > 0) {
-        btnGuardar.classList.remove('hidden'); btnGuardar.classList.add('flex');
-        document.getElementById('txt-btn-guardar-masivo').innerText = `Guardar (${count})`;
-    } else { btnGuardar.classList.add('hidden'); btnGuardar.classList.remove('flex'); }
 function showHome() {
     document.getElementById('home-dashboard').classList.remove('hidden');
     document.getElementById('iframe-container').classList.add('hidden');
@@ -832,57 +303,12 @@ function showHome() {
     sessionStorage.removeItem('genCurrentApp');
 }
 
-async function guardarCambiosMasivos() {
-    const arrCambios = Object.values(cambiosPendientes);
-    if (arrCambios.length === 0) return;
-    for (let c of arrCambios) { if (c.temp === '' && c.hum !== '') return alert(`Error: Falta Temperatura día ${c.fecha} turno ${c.turno}.`); }
-
-    const btn = document.getElementById('btn-ejecutar-masivo');
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-lg"></i> Guardando...';
-
-// === Reemplaza tu función loadApp actual por esta versión limpia ===
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     sessionStorage.setItem('genCurrentApp', app.id);
     let urlSegura = app.link;
     
-    // Tratamiento de URL
-try {
-        const response = await apiFetch({ action: 'guardarLecturasMasivas', idCamara: document.getElementById('rev-camara').value, userName: currentUser.nombre, cambios: arrCambios });
-        if (response.status === 'success') {
-            cambiosPendientes = {}; actualizarPanelMasivo();
-            document.getElementById('btn-toggle-edicion').click(); document.getElementById('btn-generar-reporte').click(); 
-        } else alert("Error: " + response.message);
-    } catch (e) { alert("Fallo de red."); } finally { btn.disabled = false; btn.innerHTML = originalHTML; actualizarPanelMasivo(); }
-}
-
-// ==========================================
-// 7. MOTOR DE IMPRESIÓN Y EXPORTACIÓN PDF
-// ==========================================
-
-function generarMoldeHACCP() {
-    if(ultimaDataRevision.length === 0) { alert("Genere primero un reporte en pantalla."); return false; }
-    if(modoEdicionActivo) document.getElementById('btn-toggle-edicion').click(); 
-
-    const camaraText = document.getElementById('rev-camara').options[document.getElementById('rev-camara').selectedIndex].text;
-    const cName = camaraText.toLowerCase();
-    const mesText = document.getElementById('rev-mes').options[document.getElementById('rev-mes').selectedIndex].text;
-    const anioText = document.getElementById('rev-anio').value;
-    const diasEnMes = new Date(configRevisionActual.anio, configRevisionActual.mes, 0).getDate();
-    const usaHumedad = configRevisionActual.usaHumedad; 
-
-    // Lógica dinámica estricta de documentos HACCP (Fechas Fijas de Revisión)
-    let formatCode = 'LGA-BPM-SAF01', version = '04', tituloMain = 'MANUAL DE BUENAS PRÁCTICAS DE MANUFACTURA', tituloSub = 'REGISTRO DE CONTROL DE TEMPERATURA DE CAMARAS';
-
-    if (cName.includes('desposte')) { formatCode = 'LGA-BPM-SAF02'; } 
-    else if (cName.includes('maduración') || cName.includes('maduracion')) { formatCode = 'LGA-BPM-F10'; version = '14'; } 
-    else if (cName.includes('empaque') || cName.includes('enfriamiento')) { formatCode = 'LGA-BPM-SAF03'; version = '14'; } 
-    else if (cName.includes('pt') || cName.includes('congelación') || cName.includes('congelacion') || cName.includes('tunel')) {
-        formatCode = 'LGA-HACCP-F01'; version = '07'; tituloMain = 'PLAN HCCP';
-        if (cName.includes('congelación') || cName.includes('congelacion') || cName.includes('tunel')) tituloSub = 'REGISTRO DE CONTROL PCC: ALMACENAMIENTO CONGELADO';
-        else if (cName.includes('pt')) tituloSub = 'REGISTRO DE CONTROL PCC: ALMACENAMIENTO REFRIGERADO';
-        else tituloSub = 'REGISTRO DE CONTROL PCC';
+    try {
         const urlObj = new URL(app.link);
         urlObj.searchParams.append('email', user.email); 
         urlObj.searchParams.append('rol', user.rol); 
@@ -890,110 +316,43 @@ function generarMoldeHACCP() {
         urlSegura = urlObj.toString();
     } catch (e) { 
         urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; 
-}
+    }
 
-    // Inyección de Metadatos (La fecha se mantiene estática como en el original)
-    document.getElementById('print-titulo-main').innerText = tituloMain;
-    document.getElementById('print-titulo-sub').innerText = tituloSub;
-    document.getElementById('print-version').innerText = version;
-    document.getElementById('print-fecha-rev').innerText = '08/2025';
-    document.getElementById('print-codigo').innerText = formatCode;
-    document.getElementById('print-camara-nombre').innerText = camaraText;
-    document.getElementById('print-mes-nombre').innerText = `${mesText} ${anioText}`;
-    document.getElementById('print-responsable').innerText = currentUser.nombre; 
+    // Detector de móviles
+    const esCelular = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Construcción de Cabeceras
-    let headH = `<tr><th rowspan="2" class="border border-black p-1 w-20">Fecha</th>`;
-    TODOS_LOS_TURNOS.forEach(t => { headH += `<th colspan="${usaHumedad ? 2 : 1}" class="border border-black p-1">${t} ${usaHumedad ? '' : 'h'}</th>`; });
-    headH += `</tr>`;
-    if(usaHumedad) {
-        headH += `<tr>`; TODOS_LOS_TURNOS.forEach(() => { headH += `<th class="border border-black p-1">°C</th><th class="border border-black p-1">%H</th>`; }); headH += `</tr>`;
-    // Apps externas (AppSheet, etc.) abren en ventana nueva LIMPIA
-    if (['appsheet.com', 'plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
+    // Si es AppSheet Y es celular, o si es Plesk/Galaxy, abrir en ventana nueva
+    if ((urlSegura.includes('appsheet.com') && esCelular) || ['plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
         window.open(urlSegura, '_blank');
         return showHome(); 
-}
-    document.getElementById('print-head-datos').innerHTML = headH;
+    }
 
-    // Construcción de Datos e Incidencias 
-    let bodyH = ''; let bodyIncidencias = '';
-    const FERIADOS_PERU = ['01/01', '01/05', '07/06', '29/06', '23/07', '28/07', '29/07','06/08', '30/08', '08/10', '01/11', '08/12', '09/12', '25/12'];
-    const diasAbrev = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    // Renderizado en Iframe Interno
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
-
-    for (let d = 1; d <= diasEnMes; d++) {
-        const fechaFila = new Date(configRevisionActual.anio, configRevisionActual.mes - 1, d); 
-        const indiceDia = fechaFila.getDay(); 
-        const diaMesStr = `${d.toString().padStart(2, '0')}/${configRevisionActual.mes.toString().padStart(2, '0')}`;
-        const esInactivo = (indiceDia === 0 || indiceDia === 6) || FERIADOS_PERU.includes(diaMesStr);
-
-        // OMITIR COMPLETAMENTE DÍAS INACTIVOS EN IMPRESIÓN (Fines de semana y Feriados)
-        if(esInactivo) continue; 
-
-        // Formato exacto de fecha para el papel (Ej. "Lun 30")
-        const fechaAbrevStr = `${diasAbrev[indiceDia]} ${d.toString().padStart(2, '0')}`;
-        const fechaFullStr = `${d.toString().padStart(2, '0')}/${configRevisionActual.mes.toString().padStart(2, '0')}/${configRevisionActual.anio}`;
-
-        bodyH += `<tr><td class="border border-black p-1 font-bold">${fechaAbrevStr}</td>`;
-        
-        TODOS_LOS_TURNOS.forEach(turno => {
-            const reg = ultimaDataRevision.find(r => r.dia === d && r.turno === turno);
-            if (reg) {
-                bodyH += `<td class="border border-black p-1">${reg.temp === '' ? '-' : reg.temp}</td>`;
-                if(usaHumedad) bodyH += `<td class="border border-black p-1">${reg.humedad === '' ? '-' : reg.humedad}</td>`;
-
-                if (reg.incidencia && reg.incidencia.trim() !== '') {
-                    bodyIncidencias += `<tr><td class="border border-black p-1 text-center font-bold">${fechaFullStr} - ${turno}</td><td class="border border-black p-1 text-left px-2">${reg.incidencia}</td><td class="border border-black p-1 text-left"></td></tr>`;
-                }
-            } else {
-                bodyH += `<td class="border border-black p-1">-</td>`;
-                if(usaHumedad) bodyH += `<td class="border border-black p-1">-</td>`;
-            }
-        });
-        bodyH += `</tr>`;
-    }
+    
     const iframe = document.getElementById('appViewer');
     const loader = document.getElementById('loader');
     
     loader.classList.remove('hidden');
     document.getElementById('appTitle').textContent = app.titulo;
-
-    if (bodyIncidencias === '') bodyIncidencias = `<tr><td class="border border-black p-2 text-center">-</td><td class="border border-black p-2 text-center text-gray-500 italic">Sin incidencias reportadas en el periodo</td><td class="border border-black p-2"></td></tr>`;
+    
     document.querySelectorAll('.menu-btn').forEach(btn => {
         btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800');
         if (btn.dataset.id === app.id) btn.classList.add('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800');
     });
 
-    document.getElementById('print-body-datos').innerHTML = bodyH;
-    document.getElementById('print-body-incidencias').innerHTML = bodyIncidencias;
-    return true; 
-}
-    // SIMPLEMENTE QUITAMOS EL LOADER. La sesión se inyectará cuando el iframe responda 'MODULO_LISTO'
     iframe.onload = () => { 
         loader.classList.add('hidden');
     };
 
-function prepararImpresion() {
-    if(generarMoldeHACCP()) setTimeout(() => { window.print(); }, 400);
-    // Cargar la URL en el Iframe al final
     iframe.src = urlSegura; 
 }
 
-function generarPDF() {
-    if(!generarMoldeHACCP()) return;
-
-    const btn = document.getElementById('btn-descargar-pdf');
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-lg"></i>';
 function toggleMenu() {
     const s = document.getElementById('sidebar'), o = document.getElementById('sidebarOverlay');
     s.classList.toggle('-translate-x-full'); o.classList.toggle('hidden');
 }
 
-    const element = document.getElementById('formato-oficial-impresion');
-    element.classList.remove('hidden'); element.style.display = 'block';
 function openCredentialsModal() {
     const m = document.getElementById('credentialsModal'), userStr = localStorage.getItem('genUser');
     if (userStr) document.getElementById('newUsername').value = JSON.parse(userStr).usuario;
@@ -1001,21 +360,11 @@ function openCredentialsModal() {
     m.classList.remove('hidden'); m.classList.add('flex'); toggleMenu(); 
 }
 
-    const camaraText = document.getElementById('rev-camara').options[document.getElementById('rev-camara').selectedIndex].text;
-    const mesText = document.getElementById('rev-mes').options[document.getElementById('rev-mes').selectedIndex].text;
-    const filename = `Reporte_${camaraText.replace(/\s+/g, '_')}_${mesText}.pdf`;
 function closeCredentialsModal() {
     document.getElementById('credentialsModal').classList.add('hidden');
     document.getElementById('credentialsModal').classList.remove('flex');
 }
 
-    const opt = {
-        margin:       0.3,
-        filename:     filename,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 1000 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' } 
-    };
 function logout() {
     if (confirm("¿Cerrar sesión?")) {
         localStorage.removeItem('genUser'); localStorage.removeItem('genAppsCatalog');
@@ -1023,10 +372,6 @@ function logout() {
     }
 }
 
-    html2pdf().set(opt).from(element).save().then(() => {
-        element.classList.add('hidden'); element.style.display = 'none';
-        btn.disabled = false; btn.innerHTML = originalHTML;
-    });
 function optimizarLinkImagen(url) {
     if (!url) return "";
     if (url.includes("drive.google.com")) {
@@ -1036,28 +381,19 @@ function optimizarLinkImagen(url) {
     return url;
 }
 
-// === COMUNICACIÓN CON MICRO-FRONTENDS (HANDSHAKE) ===
+// === COMUNICACIÓN CON MICRO-FRONTENDS ===
 window.addEventListener("message", (event) => {
-    // Escuchamos si algún iframe nos dice que ya está listo
     if (event.data && event.data.type === 'MODULO_LISTO') {
-        console.log("GENAPPS: Módulo Iframe listo. Inyectando sesión...");
-        
-        // Buscamos la sesión local
         const sessionStr = localStorage.getItem('genUser');
-        
         if (sessionStr) {
-            const iframe = document.getElementById('appViewer'); // ID de tu iframe en GENAPPS
-            
+            const iframe = document.getElementById('appViewer');
             if (iframe && iframe.contentWindow) {
-                // Le enviamos la sesión al Iframe
                 iframe.contentWindow.postMessage({ 
                     type: 'SESSION_SYNC', 
                     user: JSON.parse(sessionStr),
                     theme: localStorage.getItem('genTheme') || 'light'
                 }, '*');
             }
-        } else {
-            console.warn("GENAPPS: Iframe pidió sesión, pero no hay usuario logueado.");
         }
     }
 });
