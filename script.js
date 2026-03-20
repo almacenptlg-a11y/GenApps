@@ -276,16 +276,16 @@ function renderWelcomeBanner(nombre) {
         svgIcon = `<svg viewBox="0 0 24 24" fill="none" class="w-16 h-16 sm:w-20 sm:h-20 animate-pulse drop-shadow-lg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`; 
     }
 
-    // APLICANDO DISEÑO MOBILE-FIRST EN EL BANNER (Padding reducido en sm)
+    // APLICANDO DISEÑO MOBILE-FIRST EN EL BANNER (Ajustado para Header Fijo)
     document.getElementById('welcome-banner').innerHTML = `
-        <div class="flex items-center gap-3 sm:gap-8 p-5 sm:p-8 rounded-[2rem] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-all hover:shadow-md">
+        <div class="flex items-center gap-3 sm:gap-6 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-all hover:shadow-md">
             <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full ${bgGlow} opacity-60 blur-3xl pointer-events-none"></div>
-            <div class="${colorCls} z-10">${svgIcon}</div>
+            <div class="${colorCls} z-10 transform scale-75 sm:scale-100 origin-left">${svgIcon}</div>
             <div class="z-10 flex-1">
-                <h2 class="text-xl sm:text-4xl font-extrabold text-gray-800 dark:text-white tracking-tight leading-tight">
+                <h2 class="text-lg sm:text-3xl font-extrabold text-gray-800 dark:text-white tracking-tight leading-tight">
                     ${saludo}, <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">${nombre}</span>
                 </h2>
-                <p class="text-gray-500 dark:text-gray-400 mt-1 sm:mt-2 font-medium text-xs sm:text-lg">¿Qué módulo vamos a gestionar hoy?</p>
+                <p class="text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1 font-medium text-[10px] sm:text-base">¿Qué módulo vamos a gestionar hoy?</p>
             </div>
         </div>
     `;
