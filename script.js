@@ -214,13 +214,9 @@ function initHub(currentUser) {
     cardsContainer.innerHTML = '';
     renderWelcomeBanner(currentUser.nombre.split(' ')[0]);
 
+   // NUEVO BLOQUE (Sin el botón de inicio redundante)
     menu.innerHTML += `
-        <button class="w-full flex items-center gap-3 p-2 mb-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-700 dark:hover:text-red-400 transition-all group" onclick="showHome()">
-            <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:bg-red-600 group-hover:text-white flex items-center justify-center transition-colors shadow-sm flex-shrink-0"><i class="ph ph-house text-xl"></i></div>
-            <span class="text-sm font-bold tracking-wide">Inicio Dashboard</span>
-        </button>
-        <div class="border-t border-gray-100 dark:border-gray-700 my-3 mx-2"></div>
-        <p class="px-3 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Módulos Activos</p>
+        <p class="px-3 mt-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Módulos Activos</p>
     `;
 
     APPS_CATALOG.forEach(app => {
@@ -356,6 +352,21 @@ function loadApp(app, user) {
     };
 
     iframe.src = urlSegura; 
+}
+
+// === NUEVA LÓGICA HÍBRIDA DEL LOGO ===
+function handleLogoClick() {
+    const sidebar = document.getElementById('sidebar');
+    const estaCerrado = sidebar.classList.contains('-translate-x-full');
+    
+    if (estaCerrado) {
+        // 1. Si el menú está oculto -> El logo sirve para ABRIRLO
+        toggleMenu();
+    } else {
+        // 2. Si el menú ya está abierto -> El logo sirve para IR A INICIO y CERRARLO
+        showHome();
+        toggleMenu();
+    }
 }
 
 function toggleMenu() {
