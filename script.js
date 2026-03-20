@@ -309,7 +309,10 @@ function showHome(desdeBotonAtras = false) {
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     sessionStorage.setItem('genCurrentApp', app.id);
+    
+    // MAGIA: Le decimos al celular que entramos a un módulo
     history.pushState({ vista: 'modulo', id: app.id }, '', `#${app.id}`);
+    
     let urlSegura = app.link;
     
     // Tratamiento de URL
@@ -323,23 +326,18 @@ function loadApp(app, user) {
         urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`; 
     }
 
-    // === REGLA ARQUITECTÓNICA: DETECCIÓN DE MÓVILES ===
-    // Detectamos si la pantalla es pequeña o si el sistema operativo es móvil
-    const esCelular = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    // Si es AppSheet Y está en un celular -> Forzamos Pestaña Nueva para que funcione el Escáner
-    if (urlSegura.includes('appsheet.com') && esCelular) {
+    // =========================================================
+    // REGLA ARQUITECTÓNICA: ENRUTAMIENTO EXTERNO (NUEVA PESTAÑA)
+    // =========================================================
+    // Si la URL contiene appsheet, galaxycont o plesk, abortamos el Iframe y abrimos nueva pestaña
+    if (['appsheet.com', 'galaxycont.com', 'plesk.page'].some(dominio => urlSegura.includes(dominio))) {
         window.open(urlSegura, '_blank');
-        return showHome(); 
+        showHome(true); // Devolvemos el Hub a la vista principal para que no se quede "Cargando"
+        return; // Detenemos la función aquí
     }
+    // =========================================================
 
-    // Apps externas (Plesk, Galaxy) siempre abren en ventana nueva
-    if (['plesk.page', 'galaxycont.com'].some(d => urlSegura.includes(d))) {
-        window.open(urlSegura, '_blank');
-        return showHome(); 
-    }
-
-    // === RENDERIZADO EN IFRAME ===
+    // === RENDERIZADO EN IFRAME (Solo para módulos propios de Apps Script) ===
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
     
@@ -360,6 +358,7 @@ function loadApp(app, user) {
 
     iframe.src = urlSegura; 
 }
+    
 
 // === NUEVA LÓGICA HÍBRIDA DEL LOGO ===
 function handleLogoClick() {
