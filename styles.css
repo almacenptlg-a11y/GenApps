@@ -1,26 +1,40 @@
 /* ==========================================================================
+   0. CONFIGURACIÓN BASE MÓVIL (NUEVO)
+   ========================================================================== */
+body {
+    overscroll-behavior-y: none; /* Previene Pull-to-Refresh en Android/iOS */
+}
+
+/* ==========================================================================
    1. CUSTOM SCROLLBAR (MENÚ LATERAL)
    ========================================================================== */
 
 /* Para navegadores basados en Webkit (Chrome, Safari, Edge) */
 #appMenu::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
 }
 #appMenu::-webkit-scrollbar-track {
     background: transparent;
 }
 #appMenu::-webkit-scrollbar-thumb {
-    background-color: #e5e7eb;
+    background-color: rgba(200, 200, 200, 0.5);
     border-radius: 20px;
 }
 #appMenu:hover::-webkit-scrollbar-thumb {
-    background-color: #d1d5db;
+    background-color: rgba(150, 150, 150, 0.8);
+}
+
+.dark #appMenu::-webkit-scrollbar-thumb {
+    background-color: rgba(80, 80, 80, 0.5);
+}
+.dark #appMenu:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(120, 120, 120, 0.8);
 }
 
 /* Soporte oficial W3C (Firefox) */
 #appMenu {
     scrollbar-width: thin;
-    scrollbar-color: #e5e7eb transparent;
+    scrollbar-color: rgba(200, 200, 200, 0.5) transparent;
 }
 
 
