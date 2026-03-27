@@ -449,7 +449,7 @@ function loadApp(app, user) {
         window.open(
             urlSegura, 
             '_blank', // Usamos _blank en lugar del título para mayor compatibilidad
-            `width=${ancho},height=${alto},top=${arriba},left=${izquierda},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,status=no`
+            `width=${ancho},height=${alto},top=${arriba},left=${izquierda},tittle=no,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,status=no`
         );
         
         showHome(true); // Devolvemos el Hub a la vista principal para que no se quede "Cargando"
