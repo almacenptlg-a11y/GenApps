@@ -432,11 +432,26 @@ function loadApp(app, user) {
     }
 
     // =========================================================
-    // REGLA ARQUITECTÓNICA: ENRUTAMIENTO EXTERNO (NUEVA PESTAÑA)
+    // REGLA ARQUITECTÓNICA: ENRUTAMIENTO EXTERNO (POPUP CENTRADO)
     // =========================================================
-    // Si la URL contiene appsheet, galaxycont o plesk, abortamos el Iframe y abrimos nueva pestaña
+    // Si la URL contiene appsheet, galaxycont o plesk, abortamos el Iframe y abrimos un marco flotante
     if (['appsheet.com', 'galaxycont.com', 'plesk.page'].some(dominio => urlSegura.includes(dominio))) {
-        window.open(urlSegura, '_blank');
+        
+        // Calculamos el 80% del tamaño de la pantalla del usuario
+        const ancho = window.innerWidth * 0.8;
+        const alto = window.innerHeight * 0.8;
+        
+        // Calculamos las coordenadas exactas para que aparezca en el centro
+        const izquierda = (window.innerWidth - ancho) / 2;
+        const arriba = (window.innerHeight - alto) / 2;
+        
+        // Abrimos la ventana con el estilo de "marco"
+        window.open(
+            urlSegura, 
+            '_blank', // Usamos _blank en lugar del título para mayor compatibilidad
+            `width=${ancho},height=${alto},top=${arriba},left=${izquierda},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,status=no`
+        );
+        
         showHome(true); // Devolvemos el Hub a la vista principal para que no se quede "Cargando"
         return; // Detenemos la función aquí
     }
