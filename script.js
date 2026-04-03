@@ -560,49 +560,53 @@ window.addEventListener('popstate', (event) => {
     showHome(true);
 });
 
-// === BOTÓN FLOTANTE DRAGGABLE Y CLIC (PC/MÓVIL) ===
+// === BOTÓN FLOTANTE DRAGGABLE Y CLIC (UNIFICADO PC Y MÓVIL) ===
 function initBotonesFlotantes() {
     const floatBtn = document.getElementById('floating-menu-btn');
     if (!floatBtn) return;
 
     let isDragging = false;
-    let startX, startY, initialTouchX, initialTouchY;
+    let isMouseDown = false;
+    let startX, startY, initialX, initialY;
 
-    // 1. EVENTO PRINCIPAL (Funciona en PC y en toques cortos de Móvil)
-    floatBtn.addEventListener('click', (e) => {
-        if (!isDragging) {
-            toggleMenu();
-        }
-    });
+    // Helper: Obtener coordenadas sin importar si es dedo o ratón
+    const getClientX = (e) => e.touches ? e.touches[0].clientX : e.clientX;
+    const getClientY = (e) => e.touches ? e.touches[0].clientY : e.clientY;
 
-    // 2. LÓGICA DE ARRASTRE PARA MÓVILES
-    floatBtn.addEventListener('touchstart', (e) => {
+    const dragStart = (e) => {
+        // Ignorar clics derechos en PC
+        if (e.type === 'mousedown' && e.button !== 0) return; 
+
+        isMouseDown = true;
         isDragging = false;
-        const touch = e.touches[0];
-        initialTouchX = touch.clientX;
-        initialTouchY = touch.clientY;
+        initialX = getClientX(e);
+        initialY = getClientY(e);
         
         const rect = floatBtn.getBoundingClientRect();
         startX = rect.left;
         startY = rect.top;
         
-        floatBtn.style.transition = 'none'; // Quitar animación para arrastre fluido
-    }, { passive: true });
+        floatBtn.style.transition = 'none'; // Movimiento fluido sin delay
+        floatBtn.style.cursor = 'grabbing'; // Cambiar el cursor en PC
+    };
 
-    floatBtn.addEventListener('touchmove', (e) => {
-        if (!e.touches.length) return;
-        const touch = e.touches[0];
-        const dx = touch.clientX - initialTouchX;
-        const dy = touch.clientY - initialTouchY;
-        
-        // Si el dedo se mueve más de 10px, confirmamos que está arrastrando y NO haciendo clic
-        if (!isDragging && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+    const dragMove = (e) => {
+        if (!isMouseDown) return;
+
+        const currentX = getClientX(e);
+        const currentY = getClientY(e);
+        const dx = currentX - initialX;
+        const dy = currentY - initialY;
+
+        // Umbral de 5px para diferenciar un clic tembloroso de un arrastre real
+        if (!isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
             isDragging = true;
         }
 
         if (isDragging) {
-            e.preventDefault(); // Evita que la pantalla se mueva de fondo
+            e.preventDefault(); // Evitar seleccionar texto o hacer scroll de fondo
             
+            // Delimitar para que no se salga de la pantalla
             const maxX = window.innerWidth - floatBtn.offsetWidth;
             const maxY = window.innerHeight - floatBtn.offsetHeight;
             
@@ -614,14 +618,35 @@ function initBotonesFlotantes() {
             floatBtn.style.right = 'auto';
             floatBtn.style.bottom = 'auto';
         }
-    }, { passive: false });
+    };
 
-    floatBtn.addEventListener('touchend', (e) => {
-        floatBtn.style.transition = ''; // Recuperar animaciones CSS
+    const dragEnd = () => {
+        isMouseDown = false;
+        floatBtn.style.transition = ''; // Recuperar animaciones de hover
+        floatBtn.style.cursor = 'pointer';
         
         if (isDragging) {
-            // Si soltó el botón tras arrastrar, bloqueamos el 'clic' fantasma por 100ms
+            // Un pequeño retraso para evitar que se dispare el 'click' al soltar el botón
             setTimeout(() => { isDragging = false; }, 100);
+        }
+    };
+
+    // 1. EVENTOS DE RATÓN (PC)
+    floatBtn.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', dragMove, { passive: false });
+    document.addEventListener('mouseup', dragEnd);
+
+    // 2. EVENTOS TÁCTILES (Móvil)
+    floatBtn.addEventListener('touchstart', dragStart, { passive: true });
+    document.addEventListener('touchmove', dragMove, { passive: false });
+    document.addEventListener('touchend', dragEnd);
+
+    // 3. EVENTO CLIC (Abrir menú)
+    floatBtn.addEventListener('click', (e) => {
+        if (!isDragging) {
+            toggleMenu();
+        } else {
+            e.preventDefault(); // Bloquear si fue un arrastre
         }
     });
 }
