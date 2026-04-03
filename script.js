@@ -5,8 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     checkAuthState();
     bindLoginEvents();
-    bindOnboardingEvents(); // Nueva llamada
+    bindOnboardingEvents();
     bindCredentialsEvents();
+    
+    initBotonesFlotantes(); // <-- ¡Asegúrate de que esta línea esté aquí!
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -613,54 +615,68 @@ window.addEventListener('popstate', (event) => {
     showHome(true);
 });
 
-// === BOTÓN FLOTANTE DRAGGABLE (MÓVILES) ===
-const floatBtn = document.getElementById('floating-menu-btn');
-if (floatBtn) {
-    let isBtnDragging = false;
-    let startBtnTouchX, startBtnTouchY;
-    let startBtnX, startBtnY;
+// === BOTÓN FLOTANTE DRAGGABLE Y CLIC (PC/MÓVIL) ===
+function initBotonesFlotantes() {
+    const floatBtn = document.getElementById('floating-menu-btn');
+    if (!floatBtn) return;
 
+    let isDragging = false;
+    let startX, startY, initialTouchX, initialTouchY;
+
+    // 1. EVENTO PRINCIPAL (Funciona en PC y en toques cortos de Móvil)
+    floatBtn.addEventListener('click', (e) => {
+        if (!isDragging) {
+            toggleMenu();
+        }
+    });
+
+    // 2. LÓGICA DE ARRASTRE PARA MÓVILES
     floatBtn.addEventListener('touchstart', (e) => {
-        isBtnDragging = false;
-        startBtnTouchX = e.touches[0].clientX;
-        startBtnTouchY = e.touches[0].clientY;
+        isDragging = false;
+        const touch = e.touches[0];
+        initialTouchX = touch.clientX;
+        initialTouchY = touch.clientY;
         
         const rect = floatBtn.getBoundingClientRect();
-        startBtnX = rect.left;
-        startBtnY = rect.top;
+        startX = rect.left;
+        startY = rect.top;
         
-        floatBtn.style.transition = 'none'; // Quitar transición al arrastrar para seguir el dedo instantaneamente
-    }, {passive: true});
+        floatBtn.style.transition = 'none'; // Quitar animación para arrastre fluido
+    }, { passive: true });
 
     floatBtn.addEventListener('touchmove', (e) => {
-        const dx = e.touches[0].clientX - startBtnTouchX;
-        const dy = e.touches[0].clientY - startBtnTouchY;
+        if (!e.touches.length) return;
+        const touch = e.touches[0];
+        const dx = touch.clientX - initialTouchX;
+        const dy = touch.clientY - initialTouchY;
         
-        // Umbral de 8px para considerar que es un "arrastre" y no un "toque rápido"
-        if (!isBtnDragging && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
-            isBtnDragging = true;
+        // Si el dedo se mueve más de 10px, confirmamos que está arrastrando y NO haciendo clic
+        if (!isDragging && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            isDragging = true;
         }
 
-        if (isBtnDragging) {
-            e.preventDefault(); // Evitar scroll de la página debajo
-            let newX = startBtnX + dx;
-            let newY = startBtnY + dy;
+        if (isDragging) {
+            e.preventDefault(); // Evita que la pantalla se mueva de fondo
             
-            // Delimitar coordenadas dentro de la pantalla
             const maxX = window.innerWidth - floatBtn.offsetWidth;
             const maxY = window.innerHeight - floatBtn.offsetHeight;
             
-            floatBtn.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
-            floatBtn.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
-            floatBtn.style.right = 'auto'; // Anular right absoluto
-            floatBtn.style.bottom = 'auto'; // Anular bottom absoluto
+            let newX = Math.max(0, Math.min(startX + dx, maxX));
+            let newY = Math.max(0, Math.min(startY + dy, maxY));
+            
+            floatBtn.style.left = `${newX}px`;
+            floatBtn.style.top = `${newY}px`;
+            floatBtn.style.right = 'auto';
+            floatBtn.style.bottom = 'auto';
         }
-    }, {passive: false});
+    }, { passive: false });
 
     floatBtn.addEventListener('touchend', (e) => {
-        floatBtn.style.transition = ''; // Recuperar transiciones fluidas de clases CSS
-        if (!isBtnDragging) {
-            toggleMenu(); // Si solo tocó el botón, abre el panel
+        floatBtn.style.transition = ''; // Recuperar animaciones CSS
+        
+        if (isDragging) {
+            // Si soltó el botón tras arrastrar, bloqueamos el 'clic' fantasma por 100ms
+            setTimeout(() => { isDragging = false; }, 100);
         }
     });
 }
