@@ -97,7 +97,7 @@
             </svg>
         </button>
 
-        <aside id="sidebar" class="fixed inset-y-0 left-0 w-[280px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl border-r border-gray-200 dark:border-gray-800 z-[100] shadow-2xl transform -translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col">
+       <aside id="sidebar" class="fixed inset-y-0 left-0 w-[280px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl border-r border-gray-200 dark:border-gray-800 z-[100] shadow-2xl transform -translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col">
             <div class="flex items-center gap-4 px-6 py-8 border-b border-gray-100 dark:border-gray-800">
                 <div class="w-10 h-10">
                     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-sm"><rect x="2.5" y="2.5" width="195" height="195" rx="45" ry="45" fill="url(#float-bg)"/><g fill="none" stroke="url(#float-stroke)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 45 85-30 85 30"/><path d="m15 155 85 30 85-30"/></g><g fill="#fff" font-family="Outfit, sans-serif" font-weight="900"><text x="98" y="122" font-size="110" text-anchor="middle" letter-spacing="-5">Gen</text><text x="198" y="150" font-size="40" text-anchor="end" letter-spacing="1">Apps</text></g></svg>
@@ -109,16 +109,6 @@
             </div>
 
             <nav id="appMenu" class="flex-1 overflow-y-auto py-4 px-4 space-y-1"></nav>
-
-            <footer class="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2 bg-gray-50/50 dark:bg-gray-900/50">
-                <button id="theme-toggle-btn-mobile" class="w-full flex items-center gap-3 p-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 shadow-sm border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all font-medium text-sm" onclick="toggleTheme()"></button>
-                <button class="w-full flex items-center gap-3 p-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 shadow-sm border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all font-medium text-sm" onclick="openCredentialsModal()">
-                    <i class="ph ph-key text-xl"></i> Editar Credenciales
-                </button>
-                <button class="w-full flex items-center gap-3 p-3 rounded-xl text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 shadow-sm border border-transparent hover:border-brand-100 dark:hover:border-brand-800/50 transition-all font-bold text-sm mt-4" onclick="logout()">
-                    <i class="ph ph-sign-out text-xl"></i> Cerrar Sesión
-                </button>
-            </footer>
         </aside>
         
         <div id="sidebarOverlay" class="fixed inset-0 bg-gray-900/40 dark:bg-black/60 z-[95] hidden backdrop-blur-sm transition-opacity duration-500" onclick="toggleMenu()"></div>
