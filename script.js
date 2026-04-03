@@ -314,19 +314,44 @@ function initHub(currentUser) {
     cardsContainer.innerHTML = '';
     renderWelcomeBanner(currentUser.nombre.split(' ')[0]);
 
-    // === TARJETA DE PERFIL (CENTRO DE COMANDO) ===
+    // === TARJETA DE PERFIL INTERACTIVA (DROPDOWN) ===
     menu.innerHTML += `
-        <div class="flex items-center gap-3 p-3 mb-6 bg-white/50 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center font-black text-xl shadow-inner drop-shadow-md">
-                ${currentUser.nombre.charAt(0)}
-            </div>
-            <div class="flex flex-col overflow-hidden flex-1">
-                <span class="text-[14px] font-bold text-gray-800 dark:text-white truncate">${currentUser.nombre}</span>
-                <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mt-0.5">${currentUser.rol || currentUser.area}</span>
+        <div class="relative mb-6">
+            <button onclick="toggleUserMenu()" class="w-full flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-gray-800 transition-all focus:outline-none group">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center font-black text-xl shadow-inner drop-shadow-md">
+                    ${currentUser.nombre.charAt(0)}
+                </div>
+                <div class="flex flex-col overflow-hidden flex-1 text-left">
+                    <span class="text-[14px] font-bold text-gray-800 dark:text-white truncate">${currentUser.nombre}</span>
+                    <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mt-0.5">${currentUser.rol || currentUser.area}</span>
+                </div>
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-500 group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+                    <i id="user-menu-icon" class="ph ph-caret-down text-lg transition-transform duration-300"></i>
+                </div>
+            </button>
+
+            <div id="user-dropdown" class="absolute top-[105%] left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden transform opacity-0 scale-95 pointer-events-none transition-all duration-200 z-50 origin-top">
+                <div class="p-2 space-y-1">
+                    <button id="dropdown-theme-btn" onclick="toggleTheme()" class="w-full flex items-center gap-3 p-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-sm font-medium"></button>
+                    
+                    <button onclick="openCredentialsModal(); toggleUserMenu();" class="w-full flex items-center gap-3 p-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-sm font-medium">
+                        <i class="ph ph-key text-xl"></i> Credenciales
+                    </button>
+                    
+                    <div class="h-px bg-gray-100 dark:bg-gray-700/50 my-1 mx-2"></div>
+                    
+                    <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-xl text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-sm font-bold">
+                        <i class="ph ph-sign-out text-xl"></i> Cerrar Sesión
+                    </button>
+                </div>
             </div>
         </div>
         <p class="px-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">Módulos Operativos</p>
     `;
+    
+    // Forzamos la actualización del icono del tema para que el nuevo botón se dibuje bien
+    const isDark = document.documentElement.classList.contains('dark');
+    actualizarIconoTema(isDark);
 
     APPS_CATALOG.forEach(app => {
         const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
