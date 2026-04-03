@@ -5,9 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     checkAuthState();
     bindLoginEvents();
-    bindOnboardingEvents(); 
+    bindOnboardingEvents(); // Nueva llamada
     bindCredentialsEvents();
-    initBotonesFlotantes(); // <-- Lógica del botón inicializada aquí de forma segura
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -109,6 +108,7 @@ function bindLoginEvents() {
                 localStorage.setItem('genAppsCatalog', JSON.stringify(data.apps));
                 checkAuthState();
             } else if (data.status === 'require_profile') {
+                // SE ACTIVA EL ONBOARDING
                 abrirModalOnboarding(data.tempUser);
             } else {
                 throw new Error(data.message);
@@ -248,13 +248,17 @@ function initHub(currentUser) {
         card.className = 'group relative aspect-[4/5] sm:aspect-[3/4] bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-[0_20px_50px_-10px_rgba(224,31,54,0.15)] dark:hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] cursor-pointer transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] border border-gray-200 dark:border-white/10 flex flex-col justify-end transform hover:-translate-y-3';
         card.onclick = () => loadApp(app, currentUser);
         card.innerHTML = `
+            <!-- Fondo Cinematográfico (Imagen con zoom) -->
             <div class="absolute inset-0 z-0 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-950">
                 <img src="${urlImagenOptimizada}" alt="${app.titulo}" class="w-full h-full object-cover opacity-80 dark:opacity-60 group-hover:opacity-100 transition-opacity duration-700 mix-blend-multiply dark:mix-blend-normal" style="image-rendering: crisp-edges;" onerror="this.outerHTML='<i class=\\'ph ph-app-window text-6xl text-brand-500/30 group-hover:text-brand-400 transition-colors duration-700\\'></i>'">
             </div>
             
+            <!-- Gradiente Inferior para Alto Contraste -->
             <div class="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-white/95 via-white/80 dark:from-black/95 dark:via-black/50 to-transparent z-10"></div>
             
+            <!-- Contenido de la Tarjeta -->
             <div class="relative z-20 p-6 sm:p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] flex flex-col justify-end h-full w-full">
+                <!-- Línea decorativa -->
                 <div class="w-8 h-1 bg-brand-500 rounded-full mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100"></div>
                 
                 <h3 class="font-black text-xl sm:text-2xl text-gray-800 dark:text-white leading-tight mb-2 tracking-wide drop-shadow-sm group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300 w-full line-clamp-2">${app.titulo}</h3>
@@ -266,6 +270,7 @@ function initHub(currentUser) {
                 </div>
             </div>
             
+            <!-- Brillo Reflejo Superior (Glimmer Cinematográfico) -->
             <div class="absolute inset-0 z-30 pointer-events-none bg-gradient-to-tr from-white/0 via-white/40 dark:via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-[1200ms] ease-in-out"></div>
         `;
         cardsContainer.appendChild(card);
@@ -315,7 +320,9 @@ function renderWelcomeBanner(nombre) {
                 </div>
             </div>
             
+            <!-- Widgets Laterales Premium -->
             <div class="flex flex-wrap lg:flex-nowrap items-center gap-3 sm:gap-4 z-10 pr-2 pb-2 pointer-events-auto mt-4 md:mt-0">
+                <!-- Clima -->
                 <a href="https://open-meteo.com/" target="_blank" title="Datos por Open-Meteo" class="flex items-center gap-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl px-4 py-3 rounded-2xl border border-white/60 dark:border-gray-700/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-lg transition-all group transform hover:-translate-y-1 duration-300">
                     <div class="w-10 h-10 rounded-[12px] bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center text-sky-500 dark:text-sky-400 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 shadow-inner">
                         <i id="weather-icon" class="ph ph-cloud-sun text-2xl animate-pulse"></i>
@@ -326,6 +333,7 @@ function renderWelcomeBanner(nombre) {
                     </div>
                 </a>
                 
+                <!-- Divisas -->
                 <a href="https://www.exchangerate-api.com" target="_blank" title="Datos por ExchangeRate-API" class="flex items-center gap-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl px-4 py-3 rounded-2xl border border-white/60 dark:border-gray-700/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-lg transition-all group transform hover:-translate-y-1 duration-300">
                     <div class="w-10 h-10 rounded-[12px] bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300 shadow-inner">
                         <i class="ph ph-currency-dollar text-2xl"></i>
@@ -534,6 +542,8 @@ function toggleMenu() {
     }
 }
 
+// AI Feature Removed
+
 function openCredentialsModal() {
     const m = document.getElementById('credentialsModal'), userStr = localStorage.getItem('genUser');
     if (userStr) document.getElementById('newUsername').value = JSON.parse(userStr).usuario;
@@ -592,6 +602,58 @@ window.addEventListener('popstate', (event) => {
     showHome(true);
 });
 
+// === BOTÓN FLOTANTE DRAGGABLE (MÓVILES) ===
+const floatBtn = document.getElementById('floating-menu-btn');
+if (floatBtn) {
+    let isBtnDragging = false;
+    let startBtnTouchX, startBtnTouchY;
+    let startBtnX, startBtnY;
+
+    floatBtn.addEventListener('touchstart', (e) => {
+        isBtnDragging = false;
+        startBtnTouchX = e.touches[0].clientX;
+        startBtnTouchY = e.touches[0].clientY;
+        
+        const rect = floatBtn.getBoundingClientRect();
+        startBtnX = rect.left;
+        startBtnY = rect.top;
+        
+        floatBtn.style.transition = 'none'; // Quitar transición al arrastrar para seguir el dedo instantaneamente
+    }, {passive: true});
+
+    floatBtn.addEventListener('touchmove', (e) => {
+        const dx = e.touches[0].clientX - startBtnTouchX;
+        const dy = e.touches[0].clientY - startBtnTouchY;
+        
+        // Umbral de 8px para considerar que es un "arrastre" y no un "toque rápido"
+        if (!isBtnDragging && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+            isBtnDragging = true;
+        }
+
+        if (isBtnDragging) {
+            e.preventDefault(); // Evitar scroll de la página debajo
+            let newX = startBtnX + dx;
+            let newY = startBtnY + dy;
+            
+            // Delimitar coordenadas dentro de la pantalla
+            const maxX = window.innerWidth - floatBtn.offsetWidth;
+            const maxY = window.innerHeight - floatBtn.offsetHeight;
+            
+            floatBtn.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+            floatBtn.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+            floatBtn.style.right = 'auto'; // Anular right absoluto
+            floatBtn.style.bottom = 'auto'; // Anular bottom absoluto
+        }
+    }, {passive: false});
+
+    floatBtn.addEventListener('touchend', (e) => {
+        floatBtn.style.transition = ''; // Recuperar transiciones fluidas de clases CSS
+        if (!isBtnDragging) {
+            toggleMenu(); // Si solo tocó el botón, abre el panel
+        }
+    });
+}
+
 // === GESTOS TÁCTILES (SWIPE NATIVO LATERAL PARA PANELES) ===
 let touchStartX = 0;
 let touchStartY = 0;
@@ -640,60 +702,5 @@ function handleSwipeGesture(endX, endY) {
             // Cerrar menú principal arrastrándolo a la izquierda
             toggleMenu();
         }
-    }
-}
-
-// === BOTÓN FLOTANTE DRAGGABLE (MÓVILES) ===
-// Envuelto en una función para ser inicializado cuando el DOM esté listo
-function initBotonesFlotantes() {
-    const floatBtn = document.getElementById('floating-menu-btn');
-    if (floatBtn) {
-        let isBtnDragging = false;
-        let startBtnTouchX, startBtnTouchY;
-        let startBtnX, startBtnY;
-
-        floatBtn.addEventListener('touchstart', (e) => {
-            isBtnDragging = false;
-            startBtnTouchX = e.touches[0].clientX;
-            startBtnTouchY = e.touches[0].clientY;
-            
-            const rect = floatBtn.getBoundingClientRect();
-            startBtnX = rect.left;
-            startBtnY = rect.top;
-            
-            floatBtn.style.transition = 'none'; // Quitar transición al arrastrar para seguir el dedo instantaneamente
-        }, {passive: true});
-
-        floatBtn.addEventListener('touchmove', (e) => {
-            const dx = e.touches[0].clientX - startBtnTouchX;
-            const dy = e.touches[0].clientY - startBtnTouchY;
-            
-            // Umbral de 8px para considerar que es un "arrastre" y no un "toque rápido"
-            if (!isBtnDragging && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
-                isBtnDragging = true;
-            }
-
-            if (isBtnDragging) {
-                e.preventDefault(); // Evitar scroll de la página debajo
-                let newX = startBtnX + dx;
-                let newY = startBtnY + dy;
-                
-                // Delimitar coordenadas dentro de la pantalla
-                const maxX = window.innerWidth - floatBtn.offsetWidth;
-                const maxY = window.innerHeight - floatBtn.offsetHeight;
-                
-                floatBtn.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
-                floatBtn.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
-                floatBtn.style.right = 'auto'; // Anular right absoluto
-                floatBtn.style.bottom = 'auto'; // Anular bottom absoluto
-            }
-        }, {passive: false});
-
-        floatBtn.addEventListener('touchend', (e) => {
-            floatBtn.style.transition = ''; // Recuperar transiciones fluidas de clases CSS
-            if (!isBtnDragging) {
-                toggleMenu(); // Si solo tocó el botón, abre el panel
-            }
-        });
     }
 }
