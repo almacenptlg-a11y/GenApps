@@ -372,42 +372,31 @@ async function fetchWidgetsData() {
     } catch (e) { console.warn("Divisas no disponibles", e); }
 }
 
-// Añadimos el parámetro "desdeBotonAtras" para evitar bucles infinitos
 function showHome(desdeBotonAtras = false) {
     document.getElementById('home-dashboard').classList.remove('hidden');
     document.getElementById('iframe-container').classList.add('hidden');
     document.getElementById('appTitle').textContent = "Inicio";
-    document.getElementById('appViewer').src = "about:blank";
+    document.getElementById('appViewer').src = "about:blank"; 
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800'));
     sessionStorage.removeItem('genCurrentApp');
 
-    // Restaurar header en móviles
-    const headerEl = document.querySelector('header');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarLogo = document.getElementById('sidebar-logo');
-    const floatingBtn = document.getElementById('floating-menu-btn');
-    
-    if (headerEl) {
-        headerEl.classList.add('flex');
-        headerEl.classList.remove('hidden', 'sm:flex');
-    }
-    
-    if (sidebarLogo) {
-        sidebarLogo.classList.add('hidden');
-        sidebarLogo.classList.remove('flex');
-    }
-    
-    if (floatingBtn) {
-        floatingBtn.classList.add('hidden');
-        floatingBtn.classList.remove('flex');
-    }
-    
-    // Devolvemos el margen superior al menú para que baje por debajo del Header central
-    if (sidebar) sidebar.classList.add('pt-16');
-
-    // MAGIA: Registramos el estado "Home" en el historial del celular
     if (!desdeBotonAtras) {
         history.pushState({ vista: 'home' }, '', '#home');
+    }
+
+    // === RESTAURAR VISTA HUB ===
+    const headerEl = document.querySelector('header');
+    const floatingBtn = document.getElementById('floating-menu-btn');
+    
+    // Revivimos el encabezado
+    if (headerEl) {
+        headerEl.classList.remove('hidden');
+        headerEl.classList.add('flex'); 
+    }
+    // Escondemos el botón flotante
+    if (floatingBtn) {
+        floatingBtn.classList.remove('flex');
+        floatingBtn.classList.add('hidden');
     }
 }
 
@@ -461,30 +450,18 @@ function loadApp(app, user) {
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
 
-    // Ocultar header en móviles para dar 100% de espacio
+    // MODO INMERSIVO: Ocultamos el header al 100% y mostramos el botón flotante
     const headerEl = document.querySelector('header');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarLogo = document.getElementById('sidebar-logo');
     const floatingBtn = document.getElementById('floating-menu-btn');
     
     if (headerEl) {
-        headerEl.classList.remove('flex');
-        headerEl.classList.add('hidden', 'sm:flex');
+        headerEl.classList.remove('flex', 'sm:flex');
+        headerEl.classList.add('hidden');
     }
-    
-    if (sidebarLogo) {
-        sidebarLogo.classList.remove('hidden');
-        sidebarLogo.classList.add('flex');
-    }
-    
     if (floatingBtn) {
         floatingBtn.classList.remove('hidden');
         floatingBtn.classList.add('flex');
     }
-    
-    // Reducimos el margen superior de la franja lateral ya que la bloqueamos
-    if (sidebar) sidebar.classList.remove('pt-16');
-
     const iframe = document.getElementById('appViewer');
     const loader = document.getElementById('loader');
 
