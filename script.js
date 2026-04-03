@@ -218,91 +218,6 @@ function bindCredentialsEvents() {
     });
 }
 
-// === LÓGICA DEL HUB ===
-function initHub(currentUser) {
-    document.getElementById('userName').textContent = currentUser.nombre;
-    document.getElementById('userRole').textContent = currentUser.rol || currentUser.area;
-
-    const menu = document.getElementById('appMenu');
-    const cardsContainer = document.getElementById('cards-container');
-    const APPS_CATALOG = JSON.parse(localStorage.getItem('genAppsCatalog')) || [];
-
-    menu.innerHTML = '';
-    cardsContainer.innerHTML = '';
-    renderWelcomeBanner(currentUser.nombre.split(' ')[0]);
-
-  // === TARJETA DE USUARIO EN EL SIDEBAR (UNIVERSAL) ===
-    menu.innerHTML += `
-        <div class="flex items-center gap-3 p-3 mx-2 mb-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center font-black text-lg shadow-inner">
-                ${currentUser.nombre.charAt(0)}
-            </div>
-            <div class="flex flex-col overflow-hidden">
-                <span class="text-[13px] font-bold text-gray-800 dark:text-white truncate">${currentUser.nombre}</span>
-                <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">${currentUser.rol || currentUser.area}</span>
-            </div>
-        </div>
-        
-        <p class="px-3 mt-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Módulos Activos</p>
-    `;
-
-    APPS_CATALOG.forEach(app => {
-        const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
-
-        const btn = document.createElement('button');
-        btn.className = 'w-full flex items-center gap-3 p-2.5 mb-1 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-700 dark:hover:text-brand-400 transition-all group menu-btn border border-transparent hover:border-brand-100 dark:hover:border-gray-700';
-        btn.dataset.id = app.id;
-        btn.innerHTML = `<div class="w-10 h-10 rounded-xl bg-white dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600 flex-shrink-0 overflow-hidden flex items-center justify-center group-hover:border-brand-300 transition-all"><img src="${urlImagenOptimizada}" class="w-full h-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-110 group-active:scale-95" style="image-rendering: crisp-edges;" onerror="this.outerHTML='<i class=\\'ph ph-app-window text-xl\\'></i>'"></div><div class="flex flex-col items-start text-left overflow-hidden flex-1"><span class="text-[13px] font-bold truncate w-full transition-transform duration-300 group-hover:translate-x-1">${app.titulo}</span></div>`;
-        btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
-        menu.appendChild(btn);
-
-        // APLICANDO DISEÑO CINEMATOGRÁFICO EN LAS TARJETAS (Adaptado a tema oscuro y claro)
-        const card = document.createElement('div');
-        card.className = 'group relative aspect-[4/5] sm:aspect-[3/4] bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-[0_20px_50px_-10px_rgba(224,31,54,0.15)] dark:hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] cursor-pointer transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] border border-gray-200 dark:border-white/10 flex flex-col justify-end transform hover:-translate-y-3';
-        card.onclick = () => loadApp(app, currentUser);
-        card.innerHTML = `
-            <!-- Fondo Cinematográfico (Imagen con zoom) -->
-            <div class="absolute inset-0 z-0 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-950">
-                <img src="${urlImagenOptimizada}" alt="${app.titulo}" class="w-full h-full object-cover opacity-80 dark:opacity-60 group-hover:opacity-100 transition-opacity duration-700 mix-blend-multiply dark:mix-blend-normal" style="image-rendering: crisp-edges;" onerror="this.outerHTML='<i class=\\'ph ph-app-window text-6xl text-brand-500/30 group-hover:text-brand-400 transition-colors duration-700\\'></i>'">
-            </div>
-            
-            <!-- Gradiente Inferior para Alto Contraste -->
-            <div class="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-white/95 via-white/80 dark:from-black/95 dark:via-black/50 to-transparent z-10"></div>
-            
-            <!-- Contenido de la Tarjeta -->
-            <div class="relative z-20 p-6 sm:p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] flex flex-col justify-end h-full w-full">
-                <!-- Línea decorativa -->
-                <div class="w-8 h-1 bg-brand-500 rounded-full mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100"></div>
-                
-                <h3 class="font-black text-xl sm:text-2xl text-gray-800 dark:text-white leading-tight mb-2 tracking-wide drop-shadow-sm group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300 w-full line-clamp-2">${app.titulo}</h3>
-                
-                <div class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] w-full">
-                    <p class="overflow-hidden text-[13px] sm:text-[14px] text-gray-600 dark:text-gray-300 font-medium leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-150 line-clamp-3 w-full">
-                        ${app.info || 'Gestión centralizada de este módulo operativo para La Genovesa.'}
-                    </p>
-                </div>
-            </div>
-            
-            <!-- Brillo Reflejo Superior (Glimmer Cinematográfico) -->
-            <div class="absolute inset-0 z-30 pointer-events-none bg-gradient-to-tr from-white/0 via-white/40 dark:via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-[1200ms] ease-in-out"></div>
-        `;
-        cardsContainer.appendChild(card);
-    });
-
-    const appGuardada = sessionStorage.getItem('genCurrentApp');
-
-    if (appGuardada) {
-        // Buscamos la app en el catálogo por su ID
-        const appToLoad = APPS_CATALOG.find(a => a.id === appGuardada);
-        if (appToLoad) {
-            loadApp(appToLoad, currentUser);
-        } else {
-            showHome(); // Fallback por si acaso el ID ya no existe
-        }
-    } else {
-        showHome(); // Comportamiento normal si es la primera vez que entra
-    }
-}
 
 function renderWelcomeBanner(nombre) {
     const horaLocal = new Date().getHours();
@@ -385,41 +300,84 @@ async function fetchWidgetsData() {
     } catch (e) { console.warn("Divisas no disponibles", e); }
 }
 
-// Añadimos el parámetro "desdeBotonAtras" para evitar bucles infinitos
+// === LÓGICA DEL HUB ===
+function initHub(currentUser) {
+    const menu = document.getElementById('appMenu');
+    const cardsContainer = document.getElementById('cards-container');
+    const floatingBtn = document.getElementById('floating-menu-btn');
+    const APPS_CATALOG = JSON.parse(localStorage.getItem('genAppsCatalog')) || [];
+
+    // Hacemos el botón flotante visible
+    if(floatingBtn) floatingBtn.classList.replace('hidden', 'flex');
+
+    menu.innerHTML = '';
+    cardsContainer.innerHTML = '';
+    renderWelcomeBanner(currentUser.nombre.split(' ')[0]);
+
+    // === TARJETA DE PERFIL (CENTRO DE COMANDO) ===
+    menu.innerHTML += `
+        <div class="flex items-center gap-3 p-3 mb-6 bg-white/50 dark:bg-gray-800/40 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center font-black text-xl shadow-inner drop-shadow-md">
+                ${currentUser.nombre.charAt(0)}
+            </div>
+            <div class="flex flex-col overflow-hidden flex-1">
+                <span class="text-[14px] font-bold text-gray-800 dark:text-white truncate">${currentUser.nombre}</span>
+                <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mt-0.5">${currentUser.rol || currentUser.area}</span>
+            </div>
+        </div>
+        <p class="px-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">Módulos Operativos</p>
+    `;
+
+    APPS_CATALOG.forEach(app => {
+        const urlImagenOptimizada = optimizarLinkImagen(app.imagen);
+
+        // Menú Lateral
+        const btn = document.createElement('button');
+        btn.className = 'w-full flex items-center gap-3 p-2.5 mb-1.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-brand-50 dark:hover:bg-gray-800 hover:text-brand-700 dark:hover:text-brand-400 transition-all group menu-btn border border-transparent hover:border-brand-100 dark:hover:border-gray-700';
+        btn.dataset.id = app.id;
+        btn.innerHTML = `<div class="w-10 h-10 rounded-lg bg-white dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600 flex-shrink-0 overflow-hidden flex items-center justify-center group-hover:border-brand-300 transition-all"><img src="${urlImagenOptimizada}" class="w-full h-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-110" onerror="this.outerHTML='<i class=\\'ph ph-app-window text-xl\\'></i>'"></div><div class="flex flex-col items-start text-left overflow-hidden flex-1"><span class="text-[13px] font-bold truncate w-full transition-transform duration-300 group-hover:translate-x-1">${app.titulo}</span></div>`;
+        btn.onclick = () => { loadApp(app, currentUser); toggleMenu(); };
+        menu.appendChild(btn);
+
+        // Tarjetas Principales (Dashboard)
+        const card = document.createElement('div');
+        card.className = 'group relative aspect-[4/5] sm:aspect-[3/4] bg-white dark:bg-gray-900 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-[0_20px_50px_-10px_rgba(224,31,54,0.15)] dark:hover:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] cursor-pointer transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] border border-gray-200 dark:border-white/10 flex flex-col justify-end transform hover:-translate-y-3';
+        card.onclick = () => loadApp(app, currentUser);
+        card.innerHTML = `
+            <div class="absolute inset-0 z-0 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-950">
+                <img src="${urlImagenOptimizada}" class="w-full h-full object-cover opacity-80 dark:opacity-60 group-hover:opacity-100 transition-opacity duration-700 mix-blend-multiply dark:mix-blend-normal">
+            </div>
+            <div class="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-white/95 via-white/80 dark:from-black/95 dark:via-black/50 to-transparent z-10"></div>
+            <div class="relative z-20 p-6 sm:p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-700 flex flex-col justify-end h-full w-full">
+                <div class="w-8 h-1 bg-brand-500 rounded-full mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100"></div>
+                <h3 class="font-black text-xl sm:text-2xl text-gray-800 dark:text-white leading-tight mb-2 tracking-wide w-full line-clamp-2">${app.titulo}</h3>
+                <div class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-700 w-full">
+                    <p class="overflow-hidden text-[13px] sm:text-[14px] text-gray-600 dark:text-gray-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-150 line-clamp-3 w-full">${app.info || 'Módulo operativo.'}</p>
+                </div>
+            </div>
+        `;
+        cardsContainer.appendChild(card);
+    });
+
+    const appGuardada = sessionStorage.getItem('genCurrentApp');
+    if (appGuardada) {
+        const appToLoad = APPS_CATALOG.find(a => a.id === appGuardada);
+        if (appToLoad) loadApp(appToLoad, currentUser);
+        else showHome(); 
+    } else {
+        showHome();
+    }
+}
+
 function showHome(desdeBotonAtras = false) {
     document.getElementById('home-dashboard').classList.remove('hidden');
     document.getElementById('iframe-container').classList.add('hidden');
-    document.getElementById('appTitle').textContent = "Inicio";
     document.getElementById('appViewer').src = "about:blank";
-    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800'));
+    
+    // Resalta el botón correcto
+    document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-brand-50', 'text-brand-700', 'border-brand-100', 'dark:bg-gray-800'));
     sessionStorage.removeItem('genCurrentApp');
 
-   // === RESTAURAR VISTA HUB ===
-    const headerEl = document.querySelector('header');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarLogo = document.getElementById('sidebar-logo');
-    const floatingBtn = document.getElementById('floating-menu-btn');
-    
-    // Revivimos el encabezado en todas las pantallas
-    if (headerEl) {
-        headerEl.classList.remove('hidden');
-        headerEl.classList.add('flex'); 
-    }
-    
-    if (sidebarLogo) {
-        sidebarLogo.classList.add('hidden');
-        sidebarLogo.classList.remove('flex');
-    }
-    
-    if (floatingBtn) {
-        floatingBtn.classList.add('hidden');
-        floatingBtn.classList.remove('flex');
-    }
-    
-    // Devolvemos el margen superior al menú para que baje por debajo del Header central
-    if (sidebar) sidebar.classList.add('pt-16');
-
-    // MAGIA: Registramos el estado "Home" en el historial del celular
     if (!desdeBotonAtras) {
         history.pushState({ vista: 'home' }, '', '#home');
     }
@@ -428,13 +386,9 @@ function showHome(desdeBotonAtras = false) {
 function loadApp(app, user) {
     if (!app.link) return alert("Enlace no configurado.");
     sessionStorage.setItem('genCurrentApp', app.id);
-
-    // MAGIA: Le decimos al celular que entramos a un módulo
     history.pushState({ vista: 'modulo', id: app.id }, '', `#${app.id}`);
 
     let urlSegura = app.link;
-
-    // Tratamiento de URL
     try {
         const urlObj = new URL(app.link);
         urlObj.searchParams.append('email', user.email);
@@ -445,78 +399,33 @@ function loadApp(app, user) {
         urlSegura = `${app.link}${app.link.includes('?') ? '&' : '?'}email=${encodeURIComponent(user.email)}&rol=${user.rol}&t=${Date.now()}`;
     }
 
-    // =========================================================
-    // REGLA ARQUITECTÓNICA: ENRUTAMIENTO EXTERNO (POPUP CENTRADO)
-    // =========================================================
-    // Si la URL contiene appsheet, galaxycont o plesk, abortamos el Iframe y abrimos un marco flotante
     if (['appsheet.com', 'galaxycont.com', 'plesk.page'].some(dominio => urlSegura.includes(dominio))) {
-        
-        // Calculamos el 80% del tamaño de la pantalla del usuario
         const ancho = window.innerWidth * 0.8;
         const alto = window.innerHeight * 0.8;
-        
-        // Calculamos las coordenadas exactas para que aparezca en el centro
         const izquierda = (window.innerWidth - ancho) / 2;
         const arriba = (window.innerHeight - alto) / 2;
-        
-        // Abrimos la ventana con el estilo de "marco"
-        window.open(
-            urlSegura, 
-            '_blank', // Usamos _blank en lugar del título para mayor compatibilidad
-            `width=${ancho},height=${alto},top=${arriba},left=${izquierda},tittle=no,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,status=no`
-        );
-        
-        showHome(true); // Devolvemos el Hub a la vista principal para que no se quede "Cargando"
-        return; // Detenemos la función aquí
+        window.open(urlSegura, '_blank', `width=${ancho},height=${alto},top=${arriba},left=${izquierda},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,status=no`);
+        showHome(true); 
+        return; 
     }
-    // =========================================================
 
-    // === RENDERIZADO EN IFRAME (Solo para módulos propios de Apps Script) ===
+    // === MODO INMERSIVO: Mostrar Iframe, el botón flotante se queda intacto ===
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
-
-    // MODO INMERSIVO: Ocultamos el header al 100% en TODAS las pantallas
-    const headerEl = document.querySelector('header');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarLogo = document.getElementById('sidebar-logo');
-    const floatingBtn = document.getElementById('floating-menu-btn');
-    
-    if (headerEl) {
-        headerEl.classList.remove('flex', 'sm:flex'); // Quitamos cualquier rastro de display flex
-        headerEl.classList.add('hidden'); // Ocultamos totalmente
-    }
-    
-    if (sidebarLogo) {
-        sidebarLogo.classList.remove('hidden');
-        sidebarLogo.classList.add('flex');
-    }
-    
-    if (floatingBtn) {
-        floatingBtn.classList.remove('hidden');
-        floatingBtn.classList.add('flex');
-    }
-    
-    // Reducimos el margen superior de la franja lateral ya que la bloqueamos
-    if (sidebar) sidebar.classList.remove('pt-16');
 
     const iframe = document.getElementById('appViewer');
     const loader = document.getElementById('loader');
 
     loader.classList.remove('hidden');
-    document.getElementById('appTitle').textContent = app.titulo;
 
     document.querySelectorAll('.menu-btn').forEach(btn => {
         btn.classList.remove('bg-brand-50', 'text-brand-700', 'border-brand-100', 'dark:bg-gray-800');
         if (btn.dataset.id === app.id) btn.classList.add('bg-brand-50', 'text-brand-700', 'border-brand-100', 'dark:bg-gray-800');
     });
 
-    iframe.onload = () => {
-        loader.classList.add('hidden');
-    };
-
+    iframe.onload = () => { loader.classList.add('hidden'); };
     iframe.src = urlSegura;
 }
-
 
 // === NUEVA LÓGICA HÍBRIDA DEL LOGO ===
 function handleLogoClick() {
