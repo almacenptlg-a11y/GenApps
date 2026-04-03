@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindLoginEvents();
     bindOnboardingEvents(); // Nueva llamada
     bindCredentialsEvents();
+    initBotonesFlotantes();
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -679,5 +680,56 @@ function handleSwipeGesture(endX, endY) {
             // Cerrar menú principal arrastrándolo a la izquierda
             toggleMenu();
         }
+    }
+}
+// === Mueve esto al final de tu script, envuelto en una función ===
+function initBotonesFlotantes() {
+    const floatBtn = document.getElementById('floating-menu-btn');
+    if (floatBtn) {
+        let isBtnDragging = false;
+        let startBtnTouchX, startBtnTouchY;
+        let startBtnX, startBtnY;
+
+        floatBtn.addEventListener('touchstart', (e) => {
+            isBtnDragging = false;
+            startBtnTouchX = e.touches[0].clientX;
+            startBtnTouchY = e.touches[0].clientY;
+            
+            const rect = floatBtn.getBoundingClientRect();
+            startBtnX = rect.left;
+            startBtnY = rect.top;
+            
+            floatBtn.style.transition = 'none'; 
+        }, {passive: true});
+
+        floatBtn.addEventListener('touchmove', (e) => {
+            const dx = e.touches[0].clientX - startBtnTouchX;
+            const dy = e.touches[0].clientY - startBtnTouchY;
+            
+            if (!isBtnDragging && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+                isBtnDragging = true;
+            }
+
+            if (isBtnDragging) {
+                e.preventDefault(); 
+                let newX = startBtnX + dx;
+                let newY = startBtnY + dy;
+                
+                const maxX = window.innerWidth - floatBtn.offsetWidth;
+                const maxY = window.innerHeight - floatBtn.offsetHeight;
+                
+                floatBtn.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+                floatBtn.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+                floatBtn.style.right = 'auto'; 
+                floatBtn.style.bottom = 'auto'; 
+            }
+        }, {passive: false});
+
+        floatBtn.addEventListener('touchend', (e) => {
+            floatBtn.style.transition = ''; 
+            if (!isBtnDragging) {
+                toggleMenu(); // Si solo tocó, abre el panel
+            }
+        });
     }
 }
