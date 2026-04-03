@@ -97,19 +97,30 @@
             </svg>
         </button>
 
-       <aside id="sidebar" class="fixed inset-y-0 left-0 w-[280px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl border-r border-gray-200 dark:border-gray-800 z-[100] shadow-2xl transform -translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col">
-            <div class="flex items-center gap-4 px-6 py-8 border-b border-gray-100 dark:border-gray-800">
-                <div class="w-10 h-10">
-                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-sm"><rect x="2.5" y="2.5" width="195" height="195" rx="45" ry="45" fill="url(#float-bg)"/><g fill="none" stroke="url(#float-stroke)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 45 85-30 85 30"/><path d="m15 155 85 30 85-30"/></g><g fill="#fff" font-family="Outfit, sans-serif" font-weight="900"><text x="98" y="122" font-size="110" text-anchor="middle" letter-spacing="-5">Gen</text><text x="198" y="150" font-size="40" text-anchor="end" letter-spacing="1">Apps</text></g></svg>
+<aside id="sidebar" class="fixed inset-y-0 left-0 w-[280px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl border-r border-gray-200 dark:border-gray-800 z-[100] shadow-2xl transform -translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col">
+            
+            <button onclick="showHome(); toggleMenu();" class="w-full flex items-center gap-4 px-6 py-8 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all group focus:outline-none">
+                <div class="w-10 h-10 group-hover:scale-110 transition-transform duration-300">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-sm">
+                        <rect x="2.5" y="2.5" width="195" height="195" rx="45" ry="45" fill="url(#float-bg)"/>
+                        <g fill="none" stroke="url(#float-stroke)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m15 45 85-30 85 30"/><path d="m15 155 85 30 85-30"/>
+                        </g>
+                        <g fill="#fff" font-family="Outfit, sans-serif" font-weight="900">
+                            <text x="98" y="122" font-size="110" text-anchor="middle" letter-spacing="-5">Gen</text>
+                            <text x="198" y="150" font-size="40" text-anchor="end" letter-spacing="1">Apps</text>
+                        </g>
+                    </svg>
                 </div>
-                <div>
-                    <h1 class="text-xl font-black text-gray-800 dark:text-white leading-none tracking-tight">GenApps</h1>
+                <div class="text-left">
+                    <h1 class="text-xl font-black text-gray-800 dark:text-white leading-none tracking-tight group-hover:text-brand-700 dark:group-hover:text-brand-500 transition-colors">GenApps</h1>
                     <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">La Genovesa</p>
                 </div>
-            </div>
+            </button>
 
             <nav id="appMenu" class="flex-1 overflow-y-auto py-4 px-4 space-y-1"></nav>
-        </aside>
+            
+            </aside>
         
         <div id="sidebarOverlay" class="fixed inset-0 bg-gray-900/40 dark:bg-black/60 z-[95] hidden backdrop-blur-sm transition-opacity duration-500" onclick="toggleMenu()"></div>
 
