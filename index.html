@@ -167,7 +167,10 @@
 
 <div class="flex flex-1 relative overflow-hidden">
 <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 pt-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border-r border-white/50 dark:border-gray-800/50 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] transform -translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col">
-<!-- Mobile Logo (Solo visible en móviles cuando el iframe tapa el header) -->
+<button id="floating-menu-btn" onclick="toggleMenu()" class="fixed top-4 left-4 z-[60] bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-2.5 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 hidden items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:scale-105 transition-all">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+    <!-- Mobile Logo (Solo visible en móviles cuando el iframe tapa el header) -->
 <div id="sidebar-logo" class="hidden items-center gap-3 px-6 py-5 border-b border-brand-100/50 dark:border-gray-800 bg-brand-50/50 dark:bg-brand-900/10 backdrop-blur-sm">
     <button onclick="handleLogoClick()" class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/30 transform hover:scale-105 transition-transform" aria-label="Volver a Inicio">
         <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 drop-shadow-sm">
