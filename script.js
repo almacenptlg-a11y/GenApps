@@ -231,18 +231,19 @@ function initHub(currentUser) {
     cardsContainer.innerHTML = '';
     renderWelcomeBanner(currentUser.nombre.split(' ')[0]);
 
-  menu.innerHTML += `
-        <div class="sm:hidden flex items-center gap-3 p-3 mx-2 mb-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-            <div class="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center font-black text-lg">
+  // === TARJETA DE USUARIO EN EL SIDEBAR (UNIVERSAL) ===
+    menu.innerHTML += `
+        <div class="flex items-center gap-3 p-3 mx-2 mb-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center font-black text-lg shadow-inner">
                 ${currentUser.nombre.charAt(0)}
             </div>
             <div class="flex flex-col overflow-hidden">
                 <span class="text-[13px] font-bold text-gray-800 dark:text-white truncate">${currentUser.nombre}</span>
-                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">${currentUser.rol || currentUser.area}</span>
+                <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">${currentUser.rol || currentUser.area}</span>
             </div>
         </div>
         
-        <p class="px-3 mt-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Módulos Activos</p>
+        <p class="px-3 mt-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Módulos Activos</p>
     `;
 
     APPS_CATALOG.forEach(app => {
