@@ -39,19 +39,12 @@ function toggleTheme() {
 }
 
 function actualizarIconoTema(isDark) {
-    const mobileBtn = document.getElementById('theme-toggle-btn-mobile');
-    const desktopBtn = document.getElementById('theme-toggle-btn-desktop');
+    const dropdownBtn = document.getElementById('dropdown-theme-btn');
     
-    if (mobileBtn) {
-        mobileBtn.innerHTML = isDark
-            ? `<i class="ph ph-sun text-xl text-amber-400"></i><span class="font-medium text-sm text-gray-200">Tema Claro</span>`
-            : `<i class="ph ph-moon text-xl text-gray-600"></i><span class="font-medium text-sm">Tema Oscuro</span>`;
-    }
-    
-    if (desktopBtn) {
-        desktopBtn.innerHTML = isDark
-            ? `<i class="ph-fill ph-sun text-xl text-amber-400 pointer-events-none"></i>`
-            : `<i class="ph-fill ph-moon text-xl text-gray-500 pointer-events-none"></i>`;
+    if (dropdownBtn) {
+        dropdownBtn.innerHTML = isDark
+            ? `<i class="ph-fill ph-sun text-xl text-amber-400"></i> Tema Claro`
+            : `<i class="ph-fill ph-moon text-xl text-gray-600"></i> Tema Oscuro`;
     }
 }
 
@@ -490,7 +483,24 @@ function toggleMenu() {
     }
 }
 
-// AI Feature Removed
+
+// === LÓGICA DEL MINI-MODAL DE USUARIO ===
+function toggleUserMenu() {
+    const dropdown = document.getElementById('user-dropdown');
+    const icon = document.getElementById('user-menu-icon');
+    
+    if (dropdown.classList.contains('opacity-0')) {
+        // Abrir
+        dropdown.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+        dropdown.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+        icon.classList.add('rotate-180'); // Gira la flechita hacia arriba
+    } else {
+        // Cerrar
+        dropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+        dropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+        icon.classList.remove('rotate-180'); // Restaura la flechita
+    }
+}
 
 function openCredentialsModal() {
     const m = document.getElementById('credentialsModal'), userStr = localStorage.getItem('genUser');
