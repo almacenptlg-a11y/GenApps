@@ -274,9 +274,14 @@ Guardar y Continuar <i class="ph ph-arrow-right"></i>
 </div>
 </div>
 
-<button id="floating-menu-btn" onclick="toggleMenu()" class="fixed top-4 left-4 z-[100] bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-3 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 hidden items-center justify-center text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700 hover:scale-105 transition-all">
-        <i class="ph ph-list text-2xl"></i>
-    </button> 
+<button id="floating-menu-btn" class="fixed top-4 left-4 z-[100] w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 hidden items-center justify-center shadow-lg shadow-brand-500/30 transform hover:scale-105 active:scale-95 transition-all">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 drop-shadow-sm pointer-events-none">
+            <g fill="#fff" font-family="Outfit, sans-serif" font-weight="900">
+                <text x="98" y="122" font-size="110" text-anchor="middle" letter-spacing="-5">Gen</text>
+                <text x="198" y="150" font-size="40" text-anchor="end" letter-spacing="1">Apps</text>
+            </g>
+        </svg>
+    </button>
 <script src="script.js"></script>
 </body>
 </html>
