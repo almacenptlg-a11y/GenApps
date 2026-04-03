@@ -229,7 +229,17 @@ function initHub(currentUser) {
     cardsContainer.innerHTML = '';
     renderWelcomeBanner(currentUser.nombre.split(' ')[0]);
 
-    menu.innerHTML += `
+  menu.innerHTML += `
+        <div class="sm:hidden flex items-center gap-3 p-3 mx-2 mb-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <div class="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center font-black text-lg">
+                ${currentUser.nombre.charAt(0)}
+            </div>
+            <div class="flex flex-col overflow-hidden">
+                <span class="text-[13px] font-bold text-gray-800 dark:text-white truncate">${currentUser.nombre}</span>
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">${currentUser.rol || currentUser.area}</span>
+            </div>
+        </div>
+        
         <p class="px-3 mt-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Módulos Activos</p>
     `;
 
@@ -381,15 +391,16 @@ function showHome(desdeBotonAtras = false) {
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'dark:bg-gray-800'));
     sessionStorage.removeItem('genCurrentApp');
 
-    // Restaurar header en móviles
+   // === RESTAURAR VISTA HUB ===
     const headerEl = document.querySelector('header');
     const sidebar = document.getElementById('sidebar');
     const sidebarLogo = document.getElementById('sidebar-logo');
     const floatingBtn = document.getElementById('floating-menu-btn');
     
+    // Revivimos el encabezado en todas las pantallas
     if (headerEl) {
-        headerEl.classList.add('flex');
-        headerEl.classList.remove('hidden', 'sm:flex');
+        headerEl.classList.remove('hidden');
+        headerEl.classList.add('flex'); 
     }
     
     if (sidebarLogo) {
@@ -461,15 +472,15 @@ function loadApp(app, user) {
     document.getElementById('home-dashboard').classList.add('hidden');
     document.getElementById('iframe-container').classList.remove('hidden');
 
-    // Ocultar header en móviles para dar 100% de espacio
+    // MODO INMERSIVO: Ocultamos el header al 100% en TODAS las pantallas
     const headerEl = document.querySelector('header');
     const sidebar = document.getElementById('sidebar');
     const sidebarLogo = document.getElementById('sidebar-logo');
     const floatingBtn = document.getElementById('floating-menu-btn');
     
     if (headerEl) {
-        headerEl.classList.remove('flex');
-        headerEl.classList.add('hidden', 'sm:flex');
+        headerEl.classList.remove('flex', 'sm:flex'); // Quitamos cualquier rastro de display flex
+        headerEl.classList.add('hidden'); // Ocultamos totalmente
     }
     
     if (sidebarLogo) {
