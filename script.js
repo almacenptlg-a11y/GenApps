@@ -504,15 +504,37 @@ function toggleUserMenu() {
 }
 
 function openCredentialsModal() {
-    const m = document.getElementById('credentialsModal'), userStr = localStorage.getItem('genUser');
-    if (userStr) document.getElementById('newUsername').value = JSON.parse(userStr).usuario;
+    const m = document.getElementById('credentialsModal');
+    const userStr = localStorage.getItem('genUser');
+    
+    if (userStr) {
+        document.getElementById('newUsername').value = JSON.parse(userStr).usuario;
+    }
     document.getElementById('newPassword').value = '';
-    m.classList.remove('hidden'); m.classList.add('flex'); toggleMenu();
+    
+    m.classList.remove('hidden'); 
+    m.classList.add('flex');
+    
+    // Animación fluida de entrada
+    requestAnimationFrame(() => {
+        m.classList.remove('opacity-0');
+        m.children[0].classList.remove('scale-95');
+    });
+    
+    toggleMenu(); // Cerramos el sidebar
 }
 
 function closeCredentialsModal() {
-    document.getElementById('credentialsModal').classList.add('hidden');
-    document.getElementById('credentialsModal').classList.remove('flex');
+    const m = document.getElementById('credentialsModal');
+    
+    // Animación fluida de salida
+    m.classList.add('opacity-0');
+    m.children[0].classList.add('scale-95');
+    
+    setTimeout(() => {
+        m.classList.remove('flex');
+        m.classList.add('hidden');
+    }, 300);
 }
 
 function logout() {
