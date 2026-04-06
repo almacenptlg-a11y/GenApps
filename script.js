@@ -196,14 +196,15 @@ function bindCredentialsEvents() {
             const data = await response.json();
 
             if (data.status === 'success') {
-                alert("¡Credenciales actualizadas!\nPor seguridad, tu sesión se cerrará ahora.");
                 closeCredentialsModal();
-                logout();
+                showSystemModal('alert', 'Credenciales Actualizadas', '¡Tus datos se guardaron con éxito!\nPor seguridad, iniciaremos tu sesión nuevamente.', () => {
+                    logout(); // Ahora invoca al logout modificado
+                });
             } else {
-                throw new Error(data.message);
+                showSystemModal('error', 'Error al actualizar', data.message);
             }
         } catch (error) {
-            alert("Error: " + error.message);
+            showSystemModal('error', 'Error de conexión', error.message);
         } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
@@ -402,7 +403,7 @@ function showHome(desdeBotonAtras = false) {
 }
 
 function loadApp(app, user) {
-    if (!app.link) return alert("Enlace no configurado.");
+   if (!app.link) return showSystemModal('error', 'Enlace Inválido', 'El administrador no ha configurado la URL para este módulo.');
     sessionStorage.setItem('genCurrentApp', app.id);
     history.pushState({ vista: 'modulo', id: app.id }, '', `#${app.id}`);
 
@@ -515,10 +516,18 @@ function closeCredentialsModal() {
 }
 
 function logout() {
-    if (confirm("¿Cerrar sesión?")) {
-        localStorage.removeItem('genUser'); localStorage.removeItem('genAppsCatalog');
-        document.getElementById('appViewer').src = "about:blank"; checkAuthState();
-    }
+    showSystemModal('confirm', '¿Cerrar Sesión?', 'Estás a punto de salir de la plataforma. Tendrás que volver a ingresar tus credenciales.', () => {
+        localStorage.removeItem('genUser'); 
+        localStorage.removeItem('genAppsCatalog');
+        document.getElementById('appViewer').src = "about:blank"; 
+        checkAuthState();
+        
+        // Escondemos el menú y el sidebar si estaban abiertos
+        const dropdown = document.getElementById('user-dropdown');
+        if(dropdown) dropdown.classList.add('opacity-0', 'pointer-events-none');
+        const sidebar = document.getElementById('sidebar');
+        if(sidebar && !sidebar.classList.contains('-translate-x-full')) toggleMenu();
+    });
 }
 
 function optimizarLinkImagen(url) {
@@ -559,6 +568,59 @@ window.addEventListener("message", (event) => {
 window.addEventListener('popstate', (event) => {
     showHome(true);
 });
+
+// === MOTOR DE MODALES DEL SISTEMA (Reemplaza alert y confirm) ===
+function showSystemModal(type, title, message, onConfirmCallback) {
+    const modal = document.getElementById('systemModal');
+    const iconEl = document.getElementById('sysModalIcon');
+    const titleEl = document.getElementById('sysModalTitle');
+    const msgEl = document.getElementById('sysModalMessage');
+    const btnsEl = document.getElementById('sysModalButtons');
+
+    titleEl.textContent = title;
+    msgEl.innerHTML = message.replace('\n', '<br>'); // Respeta saltos de línea
+    btnsEl.innerHTML = ''; // Limpiamos botones
+    
+    if (type === 'confirm') {
+        iconEl.className = 'w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-4xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-inner';
+        iconEl.innerHTML = '<i class="ph ph-warning-circle"></i>';
+        
+        btnsEl.innerHTML = `
+            <button id="sysBtnCancel" class="flex-1 py-3 px-4 rounded-xl font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Cancelar</button>
+            <button id="sysBtnConfirm" class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 transition-all shadow-lg shadow-brand-500/30">Sí, salir</button>
+        `;
+
+        document.getElementById('sysBtnCancel').onclick = () => closeSystemModal();
+        document.getElementById('sysBtnConfirm').onclick = () => {
+            closeSystemModal();
+            if(onConfirmCallback) onConfirmCallback();
+        };
+    } else {
+        // Modal tipo 'alert' o 'error'
+        const isError = type === 'error';
+        iconEl.className = `w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-4xl text-white shadow-inner ${isError ? 'bg-gradient-to-br from-brand-500 to-brand-700' : 'bg-gradient-to-br from-sky-400 to-sky-600'}`;
+        iconEl.innerHTML = isError ? '<i class="ph ph-x-circle"></i>' : '<i class="ph ph-info"></i>';
+        
+        btnsEl.innerHTML = `
+            <button id="sysBtnConfirm" class="w-full py-3 px-4 rounded-xl font-bold text-white bg-gray-800 hover:bg-gray-900 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 transition-colors shadow-lg">Entendido</button>
+        `;
+        document.getElementById('sysBtnConfirm').onclick = () => closeSystemModal();
+    }
+
+    // Mostrar con animación
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0');
+        modal.children[0].classList.remove('scale-95');
+    });
+}
+
+function closeSystemModal() {
+    const modal = document.getElementById('systemModal');
+    modal.classList.add('opacity-0');
+    modal.children[0].classList.add('scale-95');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
 
 // === BOTÓN FLOTANTE DRAGGABLE Y CLIC (UNIFICADO PC Y MÓVIL) ===
 function initBotonesFlotantes() {
